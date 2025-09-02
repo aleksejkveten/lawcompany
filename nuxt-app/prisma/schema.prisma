@@ -1,0 +1,133 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  apikey    String?
+  name      String?
+  password  String
+  roles     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  isDeleted Boolean  @default(false)
+}
+
+model Company {
+  id          Int      @id @default(autoincrement())
+  name        String
+  unp         String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  isDeleted   Boolean  @default(false)
+  contactPersons ContactPerson[]
+  courtCasesAsClaimant  CourtCase[] @relation("ClaimantCompany")
+  courtCasesAsDebtor    CourtCase[] @relation("DebtorCompany")
+}
+
+model ContactPerson {
+  id        Int      @id @default(autoincrement())
+  name      String
+  company   Company @relation(fields: [companyId], references: [id])
+  companyId Int
+  phones    Phone[]
+  emails    Email[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  isDeleted Boolean  @default(false)
+}
+
+model Phone {
+  id              Int      @id @default(autoincrement())
+  number          String
+  contactPerson   ContactPerson @relation(fields: [contactPersonId], references: [id])
+  contactPersonId Int
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  isDeleted       Boolean  @default(false)
+}
+
+model Email {
+  id              Int      @id @default(autoincrement())
+  address         String
+  contactPerson   ContactPerson @relation(fields: [contactPersonId], references: [id])
+  contactPersonId Int
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  isDeleted       Boolean  @default(false)
+}
+
+model CourtCase {
+  id               Int      @id @default(autoincrement())
+  uuid             String   @unique
+  claimant         String   // Взыскатель
+  claimantCompany  Company? @relation("ClaimantCompany", fields: [claimantCompanyId], references: [id])
+  claimantCompanyId Int?
+  debtor           String   // Должник
+  debtorCompany    Company? @relation("DebtorCompany", fields: [debtorCompanyId], references: [id])
+  debtorCompanyId  Int?
+  registrationNumber String // Номер регистрации
+  caseNumber       String   // № дела
+  incomingNumber   String   // Вх. №
+  receiptDate      DateTime // Дата поступления
+  debtAmount       Float    // Сумма долга
+  decision         String   // Решение о принятии заявления
+  courtName        String   // Наименование суда
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  isDeleted        Boolean  @default(false)
+}
+
+model SmsTemplate {
+  id        Int      @id @default(autoincrement())
+  name      String
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  isDeleted Boolean  @default(false)
+  sentSms    SentSms[]
+}
+
+model EmailTemplate {
+  id        Int      @id @default(autoincrement())
+  name      String
+  subject   String
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  isDeleted Boolean  @default(false)
+  sentEmails SentEmail[]
+}
+
+model SentSms {
+  id        Int      @id @default(autoincrement())
+  phone     String
+  content   String
+  template  SmsTemplate? @relation(fields: [templateId], references: [id])
+  templateId Int?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  isDeleted Boolean  @default(false)
+}
+
+model SentEmail {
+  id        Int      @id @default(autoincrement())
+  email     String
+  subject   String
+  content   String
+  template  EmailTemplate? @relation(fields: [templateId], references: [id])
+  templateId Int?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  isDeleted Boolean  @default(false)
+}

@@ -1,0 +1,62 @@
+/* Content script styles for sidebar injection */
+.cdc-sidebar-container {
+    position: fixed !important;
+    top: 0 !important;
+    right: -400px !important;
+    width: 400px !important;
+    height: 100vh !important;
+    z-index: 2147483647 !important;
+    transition: right 0.3s ease !important;
+    background: white !important;
+    box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1) !important;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+    font-size: 14px !important;
+    line-height: 1.4 !important;
+    color: #333 !important;
+}
+
+.cdc-sidebar-container.visible {
+    right: 0 !important;
+}
+
+body.cdc-sidebar-open {
+    margin-right: 400px !important;
+    transition: margin-right 0.3s ease !important;
+}
+
+/* Reset styles for sidebar content */
+.cdc-sidebar-container * {
+    box-sizing: border-box !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.cdc-sidebar-container .sidebar-container {
+    width: 100% !important;
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    background: #ffffff !important;
+}
+
+/* Ensure no conflicts with page styles */
+.cdc-sidebar-container .sidebar-header,
+.cdc-sidebar-container .sidebar-menu,
+.cdc-sidebar-container .sidebar-content {
+    position: static !important;
+    z-index: auto !important;
+}
+
+/* Override any global styles that might interfere */
+.cdc-sidebar-container input,
+.cdc-sidebar-container button,
+.cdc-sidebar-container select,
+.cdc-sidebar-container textarea {
+    all: unset !important;
+    box-sizing: border-box !important;
+}
+
+.cdc-sidebar-container button {
+    cursor: pointer !important;
+    display: inline-block !important;
+}
