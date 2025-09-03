@@ -1,5 +1,5 @@
 // API endpoint для получения списка судебных дел
-import { prisma } from '../../../utils/prisma'
+import prisma from "../../../../lib/prisma";
 
 export default defineEventHandler(async (event) => {
   try {

@@ -1,4 +1,5 @@
 <template>
+  <NuxtLayout name="admin">
   <div class="p-6">
     <div class="mb-6 flex justify-between items-center">
       <h1 class="text-2xl font-bold text-gray-900">Управление пользователями</h1>
@@ -202,6 +203,7 @@
       </div>
     </div>
   </div>
+  </NuxtLayout>
 </template>
 
 <script setup>

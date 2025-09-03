@@ -1,4 +1,4 @@
-import { prisma } from '../../../../utils/prisma'
+import prisma from "../../../../../lib/prisma";
 import { randomBytes } from 'crypto'
 
 export default defineEventHandler(async (event) => {
@@ -62,4 +62,4 @@ export default defineEventHandler(async (event) => {
       statusMessage: 'Internal server error'
     })
   }
-}))
+})

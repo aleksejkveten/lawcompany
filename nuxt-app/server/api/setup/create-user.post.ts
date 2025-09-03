@@ -1,4 +1,4 @@
-import { prisma } from '../../utils/prisma'
+import prisma from "../../../lib/prisma";
 import { hash } from 'ohash'
 import { v4 as uuidv4 } from 'uuid'
 

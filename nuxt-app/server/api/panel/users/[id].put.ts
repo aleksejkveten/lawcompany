@@ -1,5 +1,5 @@
-import { prisma } from '../../../utils/prisma'
-import bcrypt from 'bcrypt'
+import prisma from "../../../../lib/prisma";
+import * as bcrypt from 'bcrypt'
 
 export default defineEventHandler(async (event) => {
   try {

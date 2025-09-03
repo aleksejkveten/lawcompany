@@ -1,4 +1,4 @@
-import { prisma } from '../../../utils/prisma'
+import prisma from "../../../../lib/prisma";
 import bcrypt from 'bcrypt'
 import { randomBytes } from 'crypto'
 
