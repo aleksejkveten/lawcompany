@@ -1,25 +1,29 @@
 <template>
   <NuxtLayout name="admin">
   <div class="p-6">
-    <div class="mb-6 flex justify-between items-center">
-      <h1 class="text-2xl font-bold text-gray-900">Управление пользователями</h1>
-      <NuxtLink to="/panel/users/new" 
-                class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
-        Добавить пользователя
-      </NuxtLink>
-    </div>
-
-    <!-- Search and filters -->
-    <div class="mb-6 bg-white rounded-lg shadow p-4">
-      <div class="flex flex-col md:flex-row gap-4">
-        <div class="flex-1">
-          <input
-            v-model="searchQuery"
-            type="text"
-            placeholder="Поиск по email или имени..."
-            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            @input="debouncedSearch"
-          >
+    <div class="mb-6">
+      <div class="flex items-center justify-between">
+        <h1 class="text-2xl font-bold text-gray-900">Управление пользователями</h1>
+        <div class="flex items-center space-x-3">
+          <div class="relative">
+            <input
+              v-model="searchQuery"
+              type="text"
+              placeholder="Поиск по email или имени..."
+              class="w-64 px-3 py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              @input="debouncedSearch"
+            >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 absolute right-3 top-2.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+          <NuxtLink to="/panel/users/new" 
+                    class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            Добавить пользователя
+          </NuxtLink>
         </div>
       </div>
     </div>
@@ -249,34 +253,55 @@ const visiblePages = computed(() => {
 const fetchUsers = async () => {
   try {
     loading.value = true
-    const { data, pagination: paginationData } = await $fetch('/api/panel/users', {
+    const response = await $fetch('/api/panel/users', {
       query: {
-        page: pagination.value.page,
-        limit: pagination.value.limit,
-        search: searchQuery.value
+        page: pagination.value?.page || 1,
+        limit: pagination.value?.limit || 20,
+        search: searchQuery.value || ''
       }
     })
     
-    users.value = data
-    pagination.value = paginationData
+    users.value = response?.data || []
+    if (response?.pagination) {
+      pagination.value = {
+        ...pagination.value,
+        ...response.pagination
+      }
+    }
   } catch (error) {
     console.error('Error fetching users:', error)
     toast.error('Ошибка при загрузке пользователей')
+    users.value = []
   } finally {
     loading.value = false
   }
 }
 
 const changePage = (page) => {
-  if (page >= 1 && page <= pagination.value.pages) {
+  if (pagination.value && page >= 1 && page <= pagination.value.pages) {
     pagination.value.page = page
     fetchUsers()
   }
 }
 
-const debouncedSearch = useDebounceFn(() => {
-  pagination.value.page = 1
-  fetchUsers()
+// Simple debounce implementation
+function debounce(func, wait) {
+  let timeout
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout)
+      func(...args)
+    }
+    clearTimeout(timeout)
+    timeout = setTimeout(later, wait)
+  }
+}
+
+const debouncedSearch = debounce(() => {
+  if (pagination.value) {
+    pagination.value.page = 1
+    fetchUsers()
+  }
 }, 300)
 
 const confirmDelete = (user) => {

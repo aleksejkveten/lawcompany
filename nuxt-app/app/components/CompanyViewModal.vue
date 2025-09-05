@@ -15,7 +15,23 @@
           <div class="flex justify-between items-start mb-6">
             <div>
               <h3 class="text-xl font-medium text-gray-900 mb-2">{{ company?.name }}</h3>
-              <p v-if="company?.unp" class="text-sm text-gray-600">УНП: {{ company.unp }}</p>
+              <div class="space-y-1">
+                <p v-if="company?.unp" class="text-sm text-gray-600">УНП: {{ company.unp }}</p>
+                <p v-if="company?.aliases" class="text-sm text-gray-600">Псевдонимы: {{ company.aliases }}</p>
+                <div v-if="company?.track" class="flex items-center">
+                  <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                    <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                    </svg>
+                    Отслеживается
+                  </span>
+                </div>
+                <div v-if="company?.notes" class="mt-2">
+                  <p class="text-sm text-gray-600">
+                    <span class="font-medium">Заметки:</span> {{ company.notes }}
+                  </p>
+                </div>
+              </div>
             </div>
             <button 
               @click="$emit('close')" 
@@ -27,7 +43,7 @@
             </button>
           </div>
 
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <!-- Контактные лица -->
             <div>
               <h4 class="text-lg font-medium text-gray-900 mb-4">Контактные лица</h4>
@@ -87,7 +103,7 @@
               <!-- Дела как истец -->
               <div v-if="company?.courtCasesAsClaimant?.length" class="mb-4">
                 <h5 class="text-sm font-medium text-green-700 mb-2">Как истец ({{ company.courtCasesAsClaimant.length }}):</h5>
-                <div class="space-y-2">
+                <div class="space-y-2 max-h-40 overflow-y-auto">
                   <div 
                     v-for="courtCase in company.courtCasesAsClaimant" 
                     :key="courtCase.id"
@@ -103,7 +119,7 @@
               <!-- Дела как ответчик -->
               <div v-if="company?.courtCasesAsDebtor?.length" class="mb-4">
                 <h5 class="text-sm font-medium text-red-700 mb-2">Как ответчик ({{ company.courtCasesAsDebtor.length }}):</h5>
-                <div class="space-y-2">
+                <div class="space-y-2 max-h-40 overflow-y-auto">
                   <div 
                     v-for="courtCase in company.courtCasesAsDebtor" 
                     :key="courtCase.id"
@@ -118,6 +134,48 @@
               
               <div v-if="!company?.courtCasesAsClaimant?.length && !company?.courtCasesAsDebtor?.length" class="text-gray-500 italic">
                 Судебных дел нет
+              </div>
+            </div>
+            
+            <!-- Отправленные SMS и Email -->
+            <div>
+              <h4 class="text-lg font-medium text-gray-900 mb-4">Отправленные сообщения</h4>
+              
+              <!-- SMS -->
+              <div v-if="relatedSms?.length" class="mb-4">
+                <h5 class="text-sm font-medium text-blue-700 mb-2">SMS ({{ relatedSms.length }}):</h5>
+                <div class="space-y-2 max-h-40 overflow-y-auto">
+                  <div 
+                    v-for="sms in relatedSms" 
+                    :key="sms.id"
+                    class="bg-blue-50 border border-blue-200 rounded-md p-3"
+                  >
+                    <div class="text-sm font-medium text-gray-900">{{ sms.phone }}</div>
+                    <div class="text-xs text-gray-600 truncate">{{ sms.content }}</div>
+                    <div class="text-xs text-gray-500">{{ formatDate(sms.createdAt) }}</div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Email -->
+              <div v-if="relatedEmails?.length" class="mb-4">
+                <h5 class="text-sm font-medium text-purple-700 mb-2">Email ({{ relatedEmails.length }}):</h5>
+                <div class="space-y-2 max-h-40 overflow-y-auto">
+                  <div 
+                    v-for="email in relatedEmails" 
+                    :key="email.id"
+                    class="bg-purple-50 border border-purple-200 rounded-md p-3"
+                  >
+                    <div class="text-sm font-medium text-gray-900">{{ email.email }}</div>
+                    <div class="text-xs text-gray-700 font-medium">{{ email.subject }}</div>
+                    <div class="text-xs text-gray-600 truncate">{{ email.content }}</div>
+                    <div class="text-xs text-gray-500">{{ formatDate(email.createdAt) }}</div>
+                  </div>
+                </div>
+              </div>
+              
+              <div v-if="!relatedSms?.length && !relatedEmails?.length" class="text-gray-500 italic">
+                Отправленных сообщений нет
               </div>
             </div>
           </div>
@@ -152,12 +210,89 @@
 </template>
 
 <script setup>
+import { ref, computed, watch } from 'vue'
+
 const props = defineProps({
   isOpen: Boolean,
   company: Object
 })
 
 const emit = defineEmits(['close'])
+
+const relatedSms = ref([])
+const relatedEmails = ref([])
+const loadingRelated = ref(false)
+
+// Получение связанных SMS и Email
+const fetchRelatedData = async () => {
+  if (!props.company?.id) return
+  
+  loadingRelated.value = true
+  try {
+    // Получаем все телефоны и email компании
+    const phones = []
+    const emails = []
+    
+    if (props.company.contactPersons) {
+      props.company.contactPersons.forEach(contact => {
+        if (contact.phones) {
+          phones.push(...contact.phones.map(p => p.number))
+        }
+        if (contact.emails) {
+          emails.push(...contact.emails.map(e => e.address))
+        }
+      })
+    }
+    
+    // Получаем SMS по телефонам
+    if (phones.length > 0) {
+      try {
+        // Пока что оставляем пустым, так как API ендпоинт может не существовать
+        relatedSms.value = []
+        // const smsResponse = await $fetch('/api/panel/sms', {
+        //   query: {
+        //     phones: phones.join(',')
+        //   }
+        // })
+        // relatedSms.value = smsResponse?.data || []
+      } catch (error) {
+        console.error('Error fetching SMS:', error)
+        relatedSms.value = []
+      }
+    }
+    
+    // Получаем Email по адресам
+    if (emails.length > 0) {
+      try {
+        // Пока что оставляем пустым, так как API ендпоинт может не существовать
+        relatedEmails.value = []
+        // const emailResponse = await $fetch('/api/panel/emails', {
+        //   query: {
+        //     emails: emails.join(',')
+        //   }
+        // })
+        // relatedEmails.value = emailResponse?.data || []
+      } catch (error) {
+        console.error('Error fetching emails:', error)
+        relatedEmails.value = []
+      }
+    }
+  } catch (error) {
+    console.error('Error fetching related data:', error)
+  } finally {
+    loadingRelated.value = false
+  }
+}
+
+// Отслеживаем открытие модального окна и загружаем данные
+watch(() => props.isOpen, (newVal) => {
+  if (newVal && props.company) {
+    fetchRelatedData()
+  } else {
+    relatedSms.value = []
+    relatedEmails.value = []
+  }
+})
 
 // Форматирование даты
 const formatDate = (date) => {

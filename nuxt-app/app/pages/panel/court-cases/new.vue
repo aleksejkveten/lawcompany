@@ -19,28 +19,13 @@
         <!-- Court case basic info -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label for="registrationNumber" class="block text-sm font-medium text-gray-700 mb-2">
-              Регистрационный номер *
-            </label>
-            <input
-              v-model="form.registrationNumber"
-              type="text"
-              id="registrationNumber"
-              required
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Регистрационный номер"
-            >
-          </div>
-
-          <div>
             <label for="caseNumber" class="block text-sm font-medium text-gray-700 mb-2">
-              Номер дела *
+              Номер дела
             </label>
             <input
               v-model="form.caseNumber"
               type="text"
               id="caseNumber"
-              required
               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Номер дела"
             >
@@ -62,13 +47,12 @@
 
           <div>
             <label for="receiptDate" class="block text-sm font-medium text-gray-700 mb-2">
-              Дата получения *
+              Дата получения
             </label>
             <input
               v-model="form.receiptDate"
               type="date"
               id="receiptDate"
-              required
               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
           </div>
@@ -127,14 +111,13 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label for="debtAmount" class="block text-sm font-medium text-gray-700 mb-2">
-              Сумма долга *
+              Сумма долга
             </label>
             <input
               v-model="form.debtAmount"
               type="number"
               step="0.01"
               id="debtAmount"
-              required
               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="0.00"
             >
@@ -157,16 +140,41 @@
 
         <div>
           <label for="decision" class="block text-sm font-medium text-gray-700 mb-2">
-            Решение *
+            Решение
           </label>
           <textarea
             v-model="form.decision"
             id="decision"
-            required
             rows="4"
             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Описание решения суда"
           ></textarea>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label for="notes" class="block text-sm font-medium text-gray-700 mb-2">
+              Заметки
+            </label>
+            <textarea
+              v-model="form.notes"
+              id="notes"
+              rows="3"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Дополнительная информация"
+            ></textarea>
+          </div>
+          
+          <div class="flex items-start pt-8">
+            <label class="flex items-center">
+              <input
+                v-model="form.track"
+                type="checkbox"
+                class="mr-2 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              >
+              <span class="text-sm font-medium text-gray-700">Отслеживать дело</span>
+            </label>
+          </div>
         </div>
 
         <!-- Actions -->
@@ -201,7 +209,6 @@ const submitting = ref(false)
 const companies = ref([])
 
 const form = ref({
-  registrationNumber: '',
   caseNumber: '',
   incomingNumber: '',
   receiptDate: '',
@@ -211,7 +218,9 @@ const form = ref({
   debtorCompanyId: '',
   debtAmount: '',
   courtName: '',
-  decision: ''
+  decision: '',
+  notes: '',
+  track: false
 })
 
 // Fetch companies for dropdowns
@@ -230,17 +239,19 @@ const submitForm = async () => {
   
   try {
     const payload = {
-      registrationNumber: form.value.registrationNumber.trim(),
-      caseNumber: form.value.caseNumber.trim(),
+      registrationNumber: `REG-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, // Auto-generate since removed from form
+      caseNumber: form.value.caseNumber.trim() || null,
       incomingNumber: form.value.incomingNumber.trim(),
-      receiptDate: form.value.receiptDate,
+      receiptDate: form.value.receiptDate || null,
       claimant: form.value.claimant.trim(),
       claimantCompanyId: form.value.claimantCompanyId ? parseInt(form.value.claimantCompanyId) : null,
       debtor: form.value.debtor.trim(),
       debtorCompanyId: form.value.debtorCompanyId ? parseInt(form.value.debtorCompanyId) : null,
-      debtAmount: parseFloat(form.value.debtAmount),
+      debtAmount: form.value.debtAmount ? parseFloat(form.value.debtAmount) : null,
       courtName: form.value.courtName.trim(),
-      decision: form.value.decision.trim()
+      decision: form.value.decision.trim() || null,
+      notes: form.value.notes.trim() || null,
+      track: form.value.track
     }
 
     await $fetch('/api/panel/court-cases', {

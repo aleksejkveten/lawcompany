@@ -1,22 +1,31 @@
 // Content script for Chrome extension - Right sidebar injection with logging
 console.log('Court Data Collector content script loaded');
 
+// Prevent multiple initialization
+if (!window.courtDataCollectorInitialized) {
+
+window.courtDataCollectorInitialized = true;
+
 // Initialize logger
-let logger = null;
-if (typeof window !== 'undefined' && window.ExtensionLogger) {
-    logger = window.ExtensionLogger;
-} else {
-    // Fallback console logger
-    logger = {
-        info: (msg, ctx, cat) => console.log(`[INFO] ${msg}`, ctx),
-        error: (msg, ctx, cat) => console.error(`[ERROR] ${msg}`, ctx),
-        warn: (msg, ctx, cat) => console.warn(`[WARN] ${msg}`, ctx),
-        debug: (msg, ctx, cat) => console.debug(`[DEBUG] ${msg}`, ctx),
-        logUserAction: (action, details) => console.log(`[USER_ACTION] ${action}`, details),
-        logDataCollection: (op, result, details) => console.log(`[DATA_COLLECTION] ${op}`, { result, ...details }),
-        logExtensionEvent: (event, details) => console.log(`[EXTENSION] ${event}`, details),
-        logPageNavigation: (from, to, details) => console.log(`[NAVIGATION] ${from} -> ${to}`, details)
-    };
+let logger = {
+    info: (msg, ctx, cat) => console.log(`[INFO] ${msg}`, ctx),
+    error: (msg, ctx, cat) => console.error(`[ERROR] ${msg}`, ctx),
+    warn: (msg, ctx, cat) => console.warn(`[WARN] ${msg}`, ctx),
+    debug: (msg, ctx, cat) => console.debug(`[DEBUG] ${msg}`, ctx),
+    logUserAction: (action, details) => console.log(`[USER_ACTION] ${action}`, details),
+    logDataCollection: (op, result, details) => console.log(`[DATA_COLLECTION] ${op}`, { result, ...details }),
+    logExtensionEvent: (event, details) => console.log(`[EXTENSION] ${event}`, details),
+    logPageNavigation: (from, to, details) => console.log(`[NAVIGATION] ${from} -> ${to}`, details)
+};
+
+// Update logger when ExtensionLogger becomes available
+function updateLogger() {
+    if (typeof window !== 'undefined' && window.ExtensionLogger) {
+        logger = window.ExtensionLogger;
+        console.log('Court Data Collector: Logger updated to ExtensionLogger');
+        return true;
+    }
+    return false;
 }
 
 let sidebarInjected = false;
@@ -72,7 +81,34 @@ function injectSidebar() {
     fetch(sidebarURL)
         .then(response => response.text())
         .then(html => {
+            // Remove the CSS and JS links from the HTML since we'll load them separately
+            html = html.replace(/<link[^>]*href="assets\/styles\/sidebar\.css"[^>]*>/g, '');
+            html = html.replace(/<script[^>]*src="assets\/scripts\/sidebar\.js"[^>]*><\/script>/g, '');
+            
             sidebarContainer.innerHTML = html;
+            
+            // Inject sidebar CSS
+            const sidebarCSSURL = chrome.runtime.getURL('assets/styles/sidebar.css');
+            const cssLink = document.createElement('link');
+            cssLink.rel = 'stylesheet';
+            cssLink.href = sidebarCSSURL;
+            cssLink.onload = function() {
+                console.log('Court Data Collector: Sidebar CSS loaded successfully');
+                
+                // Add a visible indicator that CSS is loaded
+                const testElement = sidebarContainer.querySelector('.sidebar-header');
+                if (testElement) {
+                    const computedStyle = window.getComputedStyle(testElement);
+                    console.log('Court Data Collector: CSS check - header background:', computedStyle.backgroundColor);
+                    if (computedStyle.backgroundColor === 'rgba(0, 0, 0, 0)' || computedStyle.backgroundColor === 'transparent') {
+                        console.warn('Court Data Collector: CSS may not be properly applied');
+                    }
+                }
+            };
+            cssLink.onerror = function(error) {
+                console.error('Court Data Collector: Failed to load sidebar CSS:', error);
+            };
+            document.head.appendChild(cssLink);
             
             // Adjust body layout to accommodate sidebar
             adjustPageLayout();
@@ -150,23 +186,70 @@ function initializeSidebarEvents() {
         closeSidebarBtn.addEventListener('click', toggleSidebar);
     }
     
+    // Check if scripts are already loaded
+    if (window.ExtensionLogger && window.CourtDataCollectorSidebar) {
+        console.log('Court Data Collector: Scripts already loaded, initializing sidebar...');
+        window.CourtDataCollectorSidebar.init();
+        return;
+    }
+    
     // Load logger first, then sidebar script
     const loggerScript = document.createElement('script');
     loggerScript.src = chrome.runtime.getURL('assets/scripts/logger.js');
     loggerScript.onload = function() {
         console.log('Court Data Collector: Logger script loaded');
         
+        // Update global logger reference
+        updateLogger();
+        
         // Now load and execute sidebar JavaScript
         const sidebarScript = document.createElement('script');
         sidebarScript.src = chrome.runtime.getURL('assets/scripts/sidebar.js');
         sidebarScript.onload = function() {
             console.log('Court Data Collector: Sidebar script loaded');
-            // Initialize sidebar functionality
-            if (window.CourtDataCollectorSidebar) {
-                window.CourtDataCollectorSidebar.init();
-            }
+            // Wait a bit more for DOM elements to be ready
+            setTimeout(() => {
+                // Initialize sidebar functionality
+                if (window.CourtDataCollectorSidebar) {
+                    console.log('Court Data Collector: Initializing sidebar functionality...');
+                    window.CourtDataCollectorSidebar.init();
+                    console.log('Court Data Collector: Sidebar functionality initialized');
+                    
+                    // Add global debug functions for testing
+                    window.testSidebar = {
+                        checkElements: function() {
+                            return window.CourtDataCollectorSidebar.debug.checkElements();
+                        },
+                        switchTab: function(tabName) {
+                            return window.CourtDataCollectorSidebar.debug.testTabSwitch(tabName);
+                        },
+                        getCurrentTab: function() {
+                            return window.CourtDataCollectorSidebar.debug.getCurrentTab();
+                        },
+                        toggleConfig: function() {
+                            const toggle = document.getElementById('config-toggle');
+                            if (toggle) {
+                                toggle.click();
+                                console.log('Config toggle clicked manually');
+                            } else {
+                                console.log('Config toggle not found');
+                            }
+                        }
+                    };
+                    
+                    console.log('Debug functions available: window.testSidebar');
+                } else {
+                    console.warn('Court Data Collector: Sidebar functionality not found');
+                }
+            }, 200);
+        };
+        sidebarScript.onerror = function(error) {
+            console.error('Court Data Collector: Failed to load sidebar script:', error);
         };
         document.head.appendChild(sidebarScript);
+    };
+    loggerScript.onerror = function(error) {
+        console.error('Court Data Collector: Failed to load logger script:', error);
     };
     document.head.appendChild(loggerScript);
 }

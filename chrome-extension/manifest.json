@@ -13,26 +13,39 @@
     "<all_urls>"
   ],
   "action": {
-    "default_title": "Court Data Collector"
+    "default_title": "Court Data Collector",
+    "default_icon": {
+      "16": "assets/icons/icon16.svg",
+      "32": "assets/icons/icon32.svg",
+      "48": "assets/icons/icon48.svg",
+      "128": "assets/icons/icon128.svg"
+    }
   },
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
+      "matches": ["http://*/*", "https://*/*"],
       "js": ["content.js"],
-      "css": ["assets/styles/content.css"]
+      "css": ["assets/styles/content.css"],
+      "run_at": "document_end"
     }
   ],
   "background": {
     "service_worker": "background.js"
   },
   "icons": {
-    "16": "assets/icons/icon16.png",
-    "48": "assets/icons/icon48.png",
-    "128": "assets/icons/icon128.png"
+    "16": "assets/icons/icon16.svg",
+    "32": "assets/icons/icon32.svg",
+    "48": "assets/icons/icon48.svg",
+    "128": "assets/icons/icon128.svg"
   },
   "web_accessible_resources": [
     {
-      "resources": ["sidebar.html", "assets/*"],
+      "resources": [
+        "sidebar.html", 
+        "assets/styles/*",
+        "assets/scripts/*",
+        "assets/icons/*"
+      ],
       "matches": ["<all_urls>"]
     }
   ]

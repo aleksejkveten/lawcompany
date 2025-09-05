@@ -1,3 +1,4 @@
+
 <template>
   <NuxtLayout name="admin">
   <div class="p-6">
@@ -27,8 +28,11 @@
       </div>
     </div>
 
-    <div v-else class="bg-white rounded-lg shadow p-6">
-      <form @submit.prevent="submitForm" class="space-y-6">
+    <div v-else class="space-y-6">
+      <!-- Основная форма -->
+      <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-lg font-medium text-gray-900 mb-4">Основные данные</h2>
+        <form @submit.prevent="submitForm" class="space-y-6">
         <!-- Company basic info -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
@@ -57,6 +61,163 @@
               placeholder="Введите УНП"
             >
           </div>
+          
+          <div>
+            <label for="aliases" class="block text-sm font-medium text-gray-700 mb-2">
+              Псевдонимы
+            </label>
+            <input
+              v-model="form.aliases"
+              type="text"
+              id="aliases"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Альтернативные названия"
+            >
+          </div>
+          
+          <div>
+            <label class="flex items-center">
+              <input
+                v-model="form.track"
+                type="checkbox"
+                class="mr-2 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              >
+              <span class="text-sm font-medium text-gray-700">Отслеживать компанию</span>
+            </label>
+          </div>
+        </div>
+        
+        <div>
+          <label for="notes" class="block text-sm font-medium text-gray-700 mb-2">
+            Заметки
+          </label>
+          <textarea
+            v-model="form.notes"
+            id="notes"
+            rows="4"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Дополнительная информация"
+          ></textarea>
+        </div>
+
+        <!-- Контактные лица -->
+        <div class="mb-6">
+          <div class="flex justify-between items-center mb-3">
+            <h4 class="text-md font-medium text-gray-900">Контактные лица</h4>
+            <button 
+              type="button" 
+              @click="addContactPerson"
+              class="px-3 py-1 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            >
+              Добавить контакт
+            </button>
+          </div>
+          
+          <div v-if="form.contactPersons.length === 0" class="text-sm text-gray-500 italic">
+            Контактные лица не добавлены
+          </div>
+          
+          <div 
+            v-for="(contact, contactIndex) in form.contactPersons" 
+            :key="contactIndex"
+            class="border border-gray-200 rounded-md p-4 mb-3"
+          >
+            <div class="flex justify-between items-start mb-3">
+              <h5 class="font-medium text-gray-800">Контактное лицо {{ contactIndex + 1 }}</h5>
+              <button 
+                type="button" 
+                @click="removeContactPerson(contactIndex)"
+                class="text-red-600 hover:text-red-800"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            <div class="mb-3">
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                Имя *
+              </label>
+              <input 
+                v-model="contact.name" 
+                type="text" 
+                required
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Введите имя"
+              >
+            </div>
+            
+            <!-- Телефоны -->
+            <div class="mb-3">
+              <div class="flex justify-between items-center mb-2">
+                <label class="block text-sm font-medium text-gray-700">Телефоны</label>
+                <button 
+                  type="button" 
+                  @click="addPhone(contactIndex)"
+                  class="text-sm text-blue-600 hover:text-blue-800"
+                >
+                  + Добавить телефон
+                </button>
+              </div>
+              <div 
+                v-for="(phone, phoneIndex) in contact.phones" 
+                :key="phoneIndex"
+                class="flex gap-2 mb-2"
+              >
+                <input 
+                  v-model="phone.number" 
+                  type="tel" 
+                  class="flex-1 px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="+375 (xx) xxx-xx-xx"
+                >
+                <button 
+                  type="button" 
+                  @click="removePhone(contactIndex, phoneIndex)"
+                  class="text-red-600 hover:text-red-800"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            
+            <!-- Email адреса -->
+            <div>
+              <div class="flex justify-between items-center mb-2">
+                <label class="block text-sm font-medium text-gray-700">Email адреса</label>
+                <button 
+                  type="button" 
+                  @click="addEmail(contactIndex)"
+                  class="text-sm text-blue-600 hover:text-blue-800"
+                >
+                  + Добавить email
+                </button>
+              </div>
+              <div 
+                v-for="(email, emailIndex) in contact.emails" 
+                :key="emailIndex"
+                class="flex gap-2 mb-2"
+              >
+                <input 
+                  v-model="email.address" 
+                  type="email" 
+                  class="flex-1 px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="example@company.com"
+                >
+                <button 
+                  type="button" 
+                  @click="removeEmail(contactIndex, emailIndex)"
+                  class="text-red-600 hover:text-red-800"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- Actions -->
@@ -75,6 +236,49 @@
         </div>
       </form>
     </div>
+        
+    <!-- Связанные данные -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <!-- Судебные дела -->
+      <div class="bg-white rounded-lg shadow p-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Судебные дела</h3>
+        <div v-if="company.courtCasesAsClaimant?.length || company.courtCasesAsDebtor?.length">
+          <!-- Как истец -->
+          <div v-if="company.courtCasesAsClaimant?.length" class="mb-4">
+            <h4 class="text-sm font-medium text-green-700 mb-2">Как истец ({{ company.courtCasesAsClaimant.length }}):</h4>
+            <div class="space-y-2 max-h-40 overflow-y-auto">
+              <div v-for="courtCase in company.courtCasesAsClaimant" :key="courtCase.id" class="bg-green-50 border border-green-200 rounded p-2">
+                <div class="text-sm font-medium">{{ courtCase.caseNumber || 'Номер не указан' }}</div>
+                <div class="text-xs text-gray-600">Сумма: {{ formatCurrency(courtCase.debtAmount) }}</div>
+              </div>
+            </div>
+          </div>
+              
+          <!-- Как ответчик -->
+          <div v-if="company.courtCasesAsDebtor?.length">
+            <h4 class="text-sm font-medium text-red-700 mb-2">Как ответчик ({{ company.courtCasesAsDebtor.length }}):</h4>
+            <div class="space-y-2 max-h-40 overflow-y-auto">
+              <div v-for="courtCase in company.courtCasesAsDebtor" :key="courtCase.id" class="bg-red-50 border border-red-200 rounded p-2">
+                <div class="text-sm font-medium">{{ courtCase.caseNumber || 'Номер не указан' }}</div>
+                <div class="text-xs text-gray-600">Сумма: {{ formatCurrency(courtCase.debtAmount) }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div v-else class="text-gray-500 italic text-sm">
+          Судебных дел нет
+        </div>
+      </div>
+          
+      <!-- Отправленные сообщения -->
+      <div class="bg-white rounded-lg shadow p-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Отправленные сообщения</h3>
+        <div class="text-gray-500 italic text-sm">
+          Отправленные SMS и Email будут отображаться здесь после реализации соответствующих API эндпоинтов.
+        </div>
+      </div>
+    </div>
+  </div>
   </div>
   </NuxtLayout>
 </template>
@@ -94,8 +298,21 @@ const company = ref(null)
 
 const form = ref({
   name: '',
-  unp: ''
+  unp: '',
+  notes: '',
+  track: false,
+  aliases: '',
+  contactPersons: []
 })
+
+// Форматирование валюты
+const formatCurrency = (amount) => {
+  if (!amount) return '0 BYN'
+  return new Intl.NumberFormat('ru-RU', {
+    style: 'currency',
+    currency: 'BYN'
+  }).format(amount)
+}
 
 // Fetch company data
 const fetchCompany = async () => {
@@ -107,12 +324,62 @@ const fetchCompany = async () => {
     // Fill form
     form.value.name = data.name || ''
     form.value.unp = data.unp || ''
+    form.value.notes = data.notes || ''
+    form.value.track = data.track || false
+    form.value.aliases = data.aliases || ''
+    
+    // Fill contact persons
+    form.value.contactPersons = (data.contactPersons || []).map(contact => ({
+      id: contact.id,
+      name: contact.name,
+      phones: (contact.phones || []).map(phone => ({
+        id: phone.id,
+        number: phone.number
+      })),
+      emails: (contact.emails || []).map(email => ({
+        id: email.id,
+        address: email.address
+      }))
+    }))
   } catch (error) {
     console.error('Error fetching company:', error)
     toast.error('Ошибка при загрузке компании')
   } finally {
     loading.value = false
   }
+}
+
+// ContactPerson management functions
+const addContactPerson = () => {
+  form.value.contactPersons.push({
+    name: '',
+    phones: [],
+    emails: []
+  })
+}
+
+const removeContactPerson = (index) => {
+  form.value.contactPersons.splice(index, 1)
+}
+
+const addPhone = (contactIndex) => {
+  form.value.contactPersons[contactIndex].phones.push({
+    number: ''
+  })
+}
+
+const removePhone = (contactIndex, phoneIndex) => {
+  form.value.contactPersons[contactIndex].phones.splice(phoneIndex, 1)
+}
+
+const addEmail = (contactIndex) => {
+  form.value.contactPersons[contactIndex].emails.push({
+    address: ''
+  })
+}
+
+const removeEmail = (contactIndex, emailIndex) => {
+  form.value.contactPersons[contactIndex].emails.splice(emailIndex, 1)
 }
 
 // Submit form
@@ -127,7 +394,22 @@ const submitForm = async () => {
   try {
     const payload = {
       name: form.value.name.trim(),
-      unp: form.value.unp.trim() || null
+      unp: form.value.unp.trim() || null,
+      notes: form.value.notes.trim() || null,
+      track: form.value.track,
+      aliases: form.value.aliases.trim() || null,
+      contactPersons: form.value.contactPersons.map(contact => ({
+        id: contact.id || undefined,
+        name: contact.name.trim(),
+        phones: contact.phones.filter(phone => phone.number.trim()).map(phone => ({
+          id: phone.id || undefined,
+          number: phone.number.trim()
+        })),
+        emails: contact.emails.filter(email => email.address.trim()).map(email => ({
+          id: email.id || undefined,
+          address: email.address.trim()
+        }))
+      })).filter(contact => contact.name.trim())
     }
 
     await $fetch(`/api/panel/companies/${route.params.id}`, {

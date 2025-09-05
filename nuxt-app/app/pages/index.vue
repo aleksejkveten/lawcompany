@@ -1,5 +1,5 @@
 <template>
-  <NuxtLayout :name="admin-login">
+  <NuxtLayout name="admin-login">
   <div class="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 flex items-center justify-center px-4 relative overflow-hidden">
     <!-- Animated background elements -->
     <div class="absolute inset-0">

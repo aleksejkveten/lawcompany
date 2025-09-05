@@ -27,11 +27,23 @@ export default defineEventHandler(async (event) => {
         },
         courtCasesAsClaimant: {
           where: { isDeleted: false },
-          select: { id: true, caseNumber: true, debtAmount: true, createdAt: true }
+          select: { id: true, caseNumber: true, debtAmount: true, createdAt: true, debtor: true }
         },
         courtCasesAsDebtor: {
           where: { isDeleted: false },
-          select: { id: true, caseNumber: true, debtAmount: true, createdAt: true }
+          select: { id: true, caseNumber: true, debtAmount: true, createdAt: true, claimant: true }
+        },
+        sentSms: {
+          where: { isDeleted: false },
+          select: { id: true, phone: true, content: true, createdAt: true },
+          take: 10,
+          orderBy: { createdAt: 'desc' }
+        },
+        sentEmails: {
+          where: { isDeleted: false },
+          select: { id: true, email: true, subject: true, createdAt: true },
+          take: 10,
+          orderBy: { createdAt: 'desc' }
         }
       }
     })

@@ -1,6 +1,9 @@
 // Enhanced sidebar functionality for Court Data Collector with real API integration and logging
 console.log('Court Data Collector enhanced sidebar script loaded');
 
+// Prevent multiple initialization
+if (typeof window.CourtDataCollectorSidebar === 'undefined') {
+
 // Initialize logger
 let logger = null;
 if (typeof window !== 'undefined' && window.ExtensionLogger) {
@@ -22,7 +25,7 @@ if (typeof window !== 'undefined' && window.ExtensionLogger) {
 // Create global namespace to avoid conflicts
 window.CourtDataCollectorSidebar = (function() {
     let currentTab = 'data-collection';
-    let isConfigExpanded = true;
+    let isConfigExpanded = false; // Default to collapsed
     let apiKey = '';
     let serverUrl = 'http://localhost:3000';
     
@@ -33,11 +36,44 @@ window.CourtDataCollectorSidebar = (function() {
             isConfigExpanded: isConfigExpanded
         });
         
+        // Wait for DOM to be ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() {
+                initializeSidebar();
+            });
+        } else {
+            initializeSidebar();
+        }
+    }
+    
+    function initializeSidebar() {
+        console.log('DOM ready, setting up sidebar...');
+        
         // Load settings from storage
         loadSettings();
         
         // Setup event listeners
         setupEventListeners();
+        
+        // Initialize configuration as collapsed
+        setTimeout(() => {
+            const configContent = document.getElementById('config-content');
+            const configHeader = document.getElementById('config-header');
+            const toggleBtn = document.getElementById('config-toggle');
+            
+            console.log('Setting up collapsed config:', {
+                configContent: !!configContent,
+                configHeader: !!configHeader,
+                toggleBtn: !!toggleBtn
+            });
+            
+            if (configContent && configHeader && toggleBtn) {
+                configContent.classList.add('cdc-collapsed');
+                configHeader.classList.add('cdc-collapsed');
+                toggleBtn.textContent = '▶';
+                console.log('Configuration collapsed successfully');
+            }
+        }, 100);
         
         // Show default tab
         showTab('data-collection');
@@ -45,23 +81,75 @@ window.CourtDataCollectorSidebar = (function() {
         logger.logExtensionEvent('sidebar_init_complete', {
             currentTab: currentTab
         });
+        
+        console.log('Sidebar initialization complete');
     }
     
     function setupEventListeners() {
+        console.log('Setting up event listeners...');
+        
         // Tab switching
-        const tabButtons = document.querySelectorAll('.menu-btn');
-        tabButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                const tabName = this.getAttribute('data-tab');
+        const tabButtons = document.querySelectorAll('.cdc-menu-btn');
+        console.log('Found tab buttons:', tabButtons.length);
+        
+        tabButtons.forEach((button, index) => {
+            const tabName = button.getAttribute('data-tab');
+            console.log(`Setting up tab button ${index}: ${tabName}`);
+            
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                console.log('Tab button clicked:', tabName);
                 switchTab(tabName);
             });
         });
         
         // Configuration toggle
-        const configHeader = document.getElementById('config-header');
-        if (configHeader) {
-            configHeader.addEventListener('click', toggleConfigBlock);
+        const configToggle = document.getElementById('config-toggle');
+        console.log('Config toggle found:', !!configToggle);
+        
+        if (configToggle) {
+            configToggle.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Config toggle clicked');
+                toggleConfigBlock();
+            });
         }
+        
+        // Configuration tabs
+        const configTabs = document.querySelectorAll('.cdc-config-tab');
+        console.log('Found config tabs:', configTabs.length);
+        
+        configTabs.forEach((tab, index) => {
+            const configType = tab.getAttribute('data-config');
+            console.log(`Setting up config tab ${index}: ${configType}`);
+            
+            tab.addEventListener('click', function(e) {
+                e.preventDefault();
+                console.log('Config tab clicked:', configType);
+                
+                if (this.classList.contains('cdc-disabled')) {
+                    console.log('Config tab is disabled, ignoring click');
+                    return;
+                }
+                
+                // Update tab states
+                configTabs.forEach(t => t.classList.remove('cdc-active'));
+                this.classList.add('cdc-active');
+                
+                // Show/hide config forms
+                const newConfig = document.getElementById('new-config');
+                const checkConfig = document.getElementById('check-config');
+                
+                if (newConfig) newConfig.style.display = configType === 'new' ? 'block' : 'none';
+                if (checkConfig) checkConfig.style.display = configType === 'check' ? 'block' : 'none';
+                
+                console.log('Config forms updated:', {
+                    newConfig: configType === 'new' ? 'visible' : 'hidden',
+                    checkConfig: configType === 'check' ? 'visible' : 'hidden'
+                });
+            });
+        });
         
         // Settings functionality
         setupSettingsEvents();
@@ -74,6 +162,8 @@ window.CourtDataCollectorSidebar = (function() {
         
         // Logs functionality
         setupLogsEvents();
+        
+        console.log('Event listeners setup complete');
     }
     
     function setupSettingsEvents() {
@@ -166,52 +256,74 @@ window.CourtDataCollectorSidebar = (function() {
     }
     
     function switchTab(tabName) {
+        console.log(`Switching tab from ${currentTab} to ${tabName}`);
+        
         logger.logUserAction('tab_switch', {
             from: currentTab,
             to: tabName
         });
         
         // Update button states
-        const tabButtons = document.querySelectorAll('.menu-btn');
+        const tabButtons = document.querySelectorAll('.cdc-menu-btn');
+        console.log('Updating tab buttons, found:', tabButtons.length);
+        
         tabButtons.forEach(button => {
-            button.classList.remove('active');
-            if (button.getAttribute('data-tab') === tabName) {
-                button.classList.add('active');
+            const buttonTab = button.getAttribute('data-tab');
+            button.classList.remove('cdc-active');
+            if (buttonTab === tabName) {
+                button.classList.add('cdc-active');
+                console.log(`Activated tab button: ${buttonTab}`);
             }
         });
         
         // Show/hide tab content
         showTab(tabName);
         currentTab = tabName;
+        
+        console.log(`Tab switch complete: ${currentTab}`);
     }
     
     function showTab(tabName) {
-        const tabContents = document.querySelectorAll('.tab-content');
+        console.log(`Showing tab: ${tabName}`);
+        
+        const tabContents = document.querySelectorAll('.cdc-tab-content');
+        console.log('Found tab contents:', tabContents.length);
+        
         tabContents.forEach(content => {
-            content.classList.remove('active');
+            content.classList.remove('cdc-active');
+            console.log(`Hiding tab: ${content.id}`);
         });
         
         const targetTab = document.getElementById(tabName);
+        console.log('Target tab found:', !!targetTab, tabName);
+        
         if (targetTab) {
-            targetTab.classList.add('active');
+            targetTab.classList.add('cdc-active');
+            console.log(`Tab activated: ${tabName}`);
+        } else {
+            console.error(`Tab not found: ${tabName}`);
         }
     }
     
     function toggleConfigBlock() {
         const configContent = document.getElementById('config-content');
-        const toggleBtn = document.querySelector('#config-header .toggle-btn');
+        const toggleBtn = document.getElementById('config-toggle');
         const configHeader = document.getElementById('config-header');
         
         if (configContent && toggleBtn && configHeader) {
             isConfigExpanded = !isConfigExpanded;
             
+            logger.logUserAction('config_toggle', {
+                expanded: isConfigExpanded
+            });
+            
             if (isConfigExpanded) {
-                configContent.classList.remove('collapsed');
-                configHeader.classList.remove('collapsed');
+                configContent.classList.remove('cdc-collapsed');
+                configHeader.classList.remove('cdc-collapsed');
                 toggleBtn.textContent = '▼';
             } else {
-                configContent.classList.add('collapsed');
-                configHeader.classList.add('collapsed');
+                configContent.classList.add('cdc-collapsed');
+                configHeader.classList.add('cdc-collapsed');
                 toggleBtn.textContent = '▶';
             }
         }
@@ -634,7 +746,7 @@ window.CourtDataCollectorSidebar = (function() {
     
     function createCaseElement(caseData, type) {
         const itemDiv = document.createElement('div');
-        itemDiv.className = 'data-item';
+        itemDiv.className = 'cdc-data-item';
         itemDiv.style.borderLeft = `3px solid ${type === 'created' ? '#10b981' : '#f59e0b'}`;
         
         const caseNumber = caseData.caseNumber || caseData.registrationNumber || 'Не указан';
@@ -717,16 +829,16 @@ window.CourtDataCollectorSidebar = (function() {
         const statusElement = document.getElementById('status-message');
         if (statusElement) {
             statusElement.textContent = message;
-            statusElement.className = 'status-message';
+            statusElement.className = 'cdc-status-message';
             
             if (type) {
-                statusElement.classList.add(type);
+                statusElement.classList.add('cdc-' + type);
             }
             
             if (message) {
                 setTimeout(() => {
                     statusElement.textContent = '';
-                    statusElement.className = 'status-message';
+                    statusElement.className = 'cdc-status-message';
                 }, type === 'success' ? 3000 : 5000);
             }
         }
@@ -842,22 +954,22 @@ window.CourtDataCollectorSidebar = (function() {
         if (!statsContainer) return;
         
         statsContainer.innerHTML = `
-            <div class="stats-grid">
-                <div class="stat-item">
-                    <span class="stat-label">Всего:</span>
-                    <span class="stat-value">${stats.total || 0}</span>
+            <div class="cdc-stats-grid">
+                <div class="cdc-stat-item">
+                    <span class="cdc-stat-label">Всего:</span>
+                    <span class="cdc-stat-value">${stats.total || 0}</span>
                 </div>
-                <div class="stat-item error">
-                    <span class="stat-label">Ошибки:</span>
-                    <span class="stat-value">${stats.byLevel?.ERROR || 0}</span>
+                <div class="cdc-stat-item cdc-error">
+                    <span class="cdc-stat-label">Ошибки:</span>
+                    <span class="cdc-stat-value">${stats.byLevel?.ERROR || 0}</span>
                 </div>
-                <div class="stat-item warn">
-                    <span class="stat-label">Предупреждения:</span>
-                    <span class="stat-value">${stats.byLevel?.WARN || 0}</span>
+                <div class="cdc-stat-item cdc-warn">
+                    <span class="cdc-stat-label">Предупреждения:</span>
+                    <span class="cdc-stat-value">${stats.byLevel?.WARN || 0}</span>
                 </div>
-                <div class="stat-item info">
-                    <span class="stat-label">Информация:</span>
-                    <span class="stat-value">${stats.byLevel?.INFO || 0}</span>
+                <div class="cdc-stat-item cdc-info">
+                    <span class="cdc-stat-label">Информация:</span>
+                    <span class="cdc-stat-value">${stats.byLevel?.INFO || 0}</span>
                 </div>
             </div>
         `;
@@ -868,25 +980,25 @@ window.CourtDataCollectorSidebar = (function() {
         if (!logsContainer) return;
         
         if (logs.length === 0) {
-            logsContainer.innerHTML = '<p class="no-logs">Логи не найдены</p>';
+            logsContainer.innerHTML = '<p class="cdc-no-logs">Логи не найдены</p>';
             return;
         }
         
         logsContainer.innerHTML = logs.map(log => {
             const timestamp = new Date(log.timestamp).toLocaleString('ru-RU');
-            const levelClass = log.level.toLowerCase();
+            const levelClass = 'cdc-' + log.level.toLowerCase();
             const contextStr = Object.keys(log.context || {}).length > 0 ? 
                 JSON.stringify(log.context, null, 2) : '';
             
             return `
-                <div class="log-entry ${levelClass}">
-                    <div class="log-header">
-                        <span class="log-level">${log.level}</span>
-                        <span class="log-category">[${log.category}]</span>
-                        <span class="log-timestamp">${timestamp}</span>
+                <div class="cdc-log-entry ${levelClass}">
+                    <div class="cdc-log-header">
+                        <span class="cdc-log-level">${log.level}</span>
+                        <span class="cdc-log-category">[${log.category}]</span>
+                        <span class="cdc-log-timestamp">${timestamp}</span>
                     </div>
-                    <div class="log-message">${log.message}</div>
-                    ${contextStr ? `<div class="log-context"><pre>${contextStr}</pre></div>` : ''}
+                    <div class="cdc-log-message">${log.message}</div>
+                    ${contextStr ? `<div class="cdc-log-context"><pre>${contextStr}</pre></div>` : ''}
                 </div>
             `;
         }).join('');
@@ -914,6 +1026,30 @@ window.CourtDataCollectorSidebar = (function() {
         collectCourtData: collectCourtData,
         refreshLogs: refreshLogs,
         clearLogs: clearLogs,
-        exportLogs: exportLogs
+        exportLogs: exportLogs,
+        // Debug functions
+        debug: {
+            checkElements: function() {
+                console.log('=== DEBUG: Checking sidebar elements ===');
+                console.log('Tab buttons:', document.querySelectorAll('.cdc-menu-btn').length);
+                console.log('Tab contents:', document.querySelectorAll('.cdc-tab-content').length);
+                console.log('Config toggle:', !!document.getElementById('config-toggle'));
+                console.log('Config tabs:', document.querySelectorAll('.cdc-config-tab').length);
+                
+                const tabs = ['data-collection', 'data-retrieval', 'logs', 'settings'];
+                tabs.forEach(tab => {
+                    const element = document.getElementById(tab);
+                    console.log(`Tab ${tab}:`, !!element, element ? element.classList.contains('cdc-active') : 'N/A');
+                });
+            },
+            testTabSwitch: function(tabName) {
+                console.log(`=== DEBUG: Testing tab switch to ${tabName} ===`);
+                switchTab(tabName);
+            },
+            getCurrentTab: function() { return currentTab; },
+            isConfigExpanded: function() { return isConfigExpanded; }
+        }
     };
 })();
+
+} // End of CourtDataCollectorSidebar check

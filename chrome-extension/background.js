@@ -5,6 +5,12 @@ console.log('Court Data Collector background script loaded');
 chrome.action.onClicked.addListener(async (tab) => {
     console.log('Extension icon clicked for tab:', tab.id);
     
+    // Check if tab URL is allowed
+    if (!isValidTabUrl(tab.url)) {
+        console.log('Cannot inject into this URL:', tab.url);
+        return;
+    }
+    
     try {
         // Inject content script if not already injected
         await ensureContentScriptInjected(tab.id);
@@ -41,9 +47,33 @@ chrome.action.onClicked.addListener(async (tab) => {
     }
 });
 
+// Check if URL is valid for content script injection
+function isValidTabUrl(url) {
+    if (!url) return false;
+    
+    // Disallow chrome:// URLs, extension pages, and other restricted URLs
+    const restrictedPatterns = [
+        'chrome://',
+        'chrome-extension://',
+        'moz-extension://',
+        'edge-extension://',
+        'about:',
+        'data:',
+        'javascript:'
+    ];
+    
+    return !restrictedPatterns.some(pattern => url.startsWith(pattern));
+}
+
 // Ensure content script is injected
 async function ensureContentScriptInjected(tabId) {
     try {
+        // Get tab info first to check URL
+        const tab = await chrome.tabs.get(tabId);
+        if (!isValidTabUrl(tab.url)) {
+            throw new Error(`Cannot inject into URL: ${tab.url}`);
+        }
+        
         // Try to ping the content script
         await chrome.tabs.sendMessage(tabId, { action: 'ping' });
     } catch (error) {

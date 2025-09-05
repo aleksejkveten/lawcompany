@@ -45,6 +45,41 @@
                   placeholder="Введите УНП"
                 >
               </div>
+              
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                  Псевдонимы
+                </label>
+                <input 
+                  v-model="form.aliases" 
+                  type="text" 
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Альтернативные названия"
+                >
+              </div>
+              
+              <div class="sm:col-span-2">
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                  Заметки
+                </label>
+                <textarea 
+                  v-model="form.notes" 
+                  rows="3"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Дополнительная информация"
+                ></textarea>
+              </div>
+              
+              <div class="sm:col-span-2">
+                <label class="flex items-center">
+                  <input 
+                    v-model="form.track" 
+                    type="checkbox" 
+                    class="mr-2 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  >
+                  <span class="text-sm font-medium text-gray-700">Отслеживать компанию</span>
+                </label>
+              </div>
             </div>
 
             <!-- Контактные лица -->
@@ -204,6 +239,9 @@ const emit = defineEmits(['close', 'submit'])
 const form = ref({
   name: '',
   unp: '',
+  notes: '',
+  track: false,
+  aliases: '',
   contactPersons: []
 })
 
@@ -213,6 +251,9 @@ const resetForm = () => {
     form.value = {
       name: props.company.name || '',
       unp: props.company.unp || '',
+      notes: props.company.notes || '',
+      track: props.company.track || false,
+      aliases: props.company.aliases || '',
       contactPersons: (props.company.contactPersons || []).map(cp => ({
         name: cp.name || '',
         phones: (cp.phones || []).map(p => ({ number: p.number || '' })),
@@ -223,6 +264,9 @@ const resetForm = () => {
     form.value = {
       name: '',
       unp: '',
+      notes: '',
+      track: false,
+      aliases: '',
       contactPersons: []
     }
   }

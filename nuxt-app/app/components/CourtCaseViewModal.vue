@@ -16,7 +16,6 @@
             <div>
               <h3 class="text-xl font-medium text-gray-900 mb-2">Судебное дело № {{ courtCase?.caseNumber }}</h3>
               <div class="flex flex-wrap gap-4 text-sm text-gray-600">
-                <span><strong>Рег. №:</strong> {{ courtCase?.registrationNumber }}</span>
                 <span><strong>Вх. №:</strong> {{ courtCase?.incomingNumber }}</span>
                 <span><strong>UUID:</strong> {{ courtCase?.uuid }}</span>
               </div>

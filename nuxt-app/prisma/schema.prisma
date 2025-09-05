@@ -34,6 +34,11 @@ model Company {
   contactPersons ContactPerson[]
   courtCasesAsClaimant  CourtCase[] @relation("ClaimantCompany")
   courtCasesAsDebtor    CourtCase[] @relation("DebtorCompany")
+  sentSms     SentSms[]
+  sentEmails  SentEmail[]
+  notes        String?
+  track        Boolean? @default(false)
+  aliases      String? 
 }
 
 model ContactPerson {
@@ -78,15 +83,17 @@ model CourtCase {
   debtorCompany    Company? @relation("DebtorCompany", fields: [debtorCompanyId], references: [id])
   debtorCompanyId  Int?
   registrationNumber String // Номер регистрации
-  caseNumber       String   // № дела
+  caseNumber       String?   // № дела
   incomingNumber   String   // Вх. №
-  receiptDate      DateTime // Дата поступления
-  debtAmount       Float    // Сумма долга
-  decision         String   // Решение о принятии заявления
+  receiptDate      DateTime? // Дата поступления
+  debtAmount       Float?    // Сумма долга
+  decision         String?   // Решение о принятии заявления
   courtName        String   // Наименование суда
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
   isDeleted        Boolean  @default(false)
+  notes            String?
+  track            Boolean? @default(false)
 }
 
 model SmsTemplate {
@@ -116,6 +123,8 @@ model SentSms {
   content   String
   template  SmsTemplate? @relation(fields: [templateId], references: [id])
   templateId Int?
+  company   Company? @relation(fields: [companyId], references: [id])
+  companyId Int?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   isDeleted Boolean  @default(false)
@@ -128,6 +137,8 @@ model SentEmail {
   content   String
   template  EmailTemplate? @relation(fields: [templateId], references: [id])
   templateId Int?
+  company   Company? @relation(fields: [companyId], references: [id])
+  companyId Int?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   isDeleted Boolean  @default(false)

@@ -44,6 +44,43 @@
               placeholder="Введите УНП"
             >
           </div>
+          
+          <div>
+            <label for="aliases" class="block text-sm font-medium text-gray-700 mb-2">
+              Псевдонимы
+            </label>
+            <input
+              v-model="form.aliases"
+              type="text"
+              id="aliases"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Альтернативные названия"
+            >
+          </div>
+          
+          <div>
+            <label class="flex items-center">
+              <input
+                v-model="form.track"
+                type="checkbox"
+                class="mr-2 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              >
+              <span class="text-sm font-medium text-gray-700">Отслеживать компанию</span>
+            </label>
+          </div>
+        </div>
+        
+        <div>
+          <label for="notes" class="block text-sm font-medium text-gray-700 mb-2">
+            Заметки
+          </label>
+          <textarea
+            v-model="form.notes"
+            id="notes"
+            rows="4"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Дополнительная информация"
+          ></textarea>
         </div>
 
         <!-- Contact persons -->
@@ -147,6 +184,9 @@ const submitting = ref(false)
 const form = ref({
   name: '',
   unp: '',
+  aliases: '',
+  notes: '',
+  track: false,
   contactPersons: []
 })
 
@@ -177,6 +217,9 @@ const submitForm = async () => {
     const payload = {
       name: form.value.name.trim(),
       unp: form.value.unp.trim() || null,
+      aliases: form.value.aliases.trim() || null,
+      notes: form.value.notes.trim() || null,
+      track: form.value.track,
       contactPersons: form.value.contactPersons.map(contact => ({
         name: contact.name.trim(),
         phones: contact.phonesText ? contact.phonesText.split(',').map(p => ({ number: p.trim() })).filter(p => p.number) : [],

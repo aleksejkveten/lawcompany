@@ -24,39 +24,39 @@ body.cdc-sidebar-open {
     transition: margin-right 0.3s ease !important;
 }
 
-/* Reset styles for sidebar content */
+/* Reset only essential styles for sidebar content to prevent conflicts */
 .cdc-sidebar-container * {
     box-sizing: border-box !important;
-    margin: 0 !important;
-    padding: 0 !important;
 }
 
-.cdc-sidebar-container .sidebar-container {
+.cdc-sidebar-container .cdc-sidebar-root {
     width: 100% !important;
     height: 100% !important;
     display: flex !important;
     flex-direction: column !important;
     background: #ffffff !important;
+    margin: 0 !important;
+    padding: 0 !important;
 }
 
 /* Ensure no conflicts with page styles */
-.cdc-sidebar-container .sidebar-header,
-.cdc-sidebar-container .sidebar-menu,
-.cdc-sidebar-container .sidebar-content {
+.cdc-sidebar-container .cdc-sidebar-header,
+.cdc-sidebar-container .cdc-sidebar-menu,
+.cdc-sidebar-container .cdc-sidebar-content {
     position: static !important;
     z-index: auto !important;
 }
 
-/* Override any global styles that might interfere */
+/* Restore essential styling for form elements */
 .cdc-sidebar-container input,
 .cdc-sidebar-container button,
 .cdc-sidebar-container select,
 .cdc-sidebar-container textarea {
-    all: unset !important;
-    box-sizing: border-box !important;
+    font-family: inherit !important;
+    font-size: inherit !important;
+    display: inline-block !important;
 }
 
 .cdc-sidebar-container button {
     cursor: pointer !important;
-    display: inline-block !important;
 }

@@ -21,7 +21,7 @@
             v-model="form.email"
             type="email"
             required
-            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-700 focus:border-transparent"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-700 focus:border-transparent"
             placeholder="admin@example.com"
           />
         </div>
@@ -33,7 +33,7 @@
             v-model="form.password"
             type="password"
             required
-            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-700 focus:border-transparent"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-700 focus:border-transparent"
             placeholder="********"
           />
         </div>
@@ -41,7 +41,7 @@
         <div>
           <button
             type="submit"
-            class="w-full cursor-pointer px-4 py-2 text-white bg-sky-700 hover:bg-sky-800 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-800"
+            class="w-full cursor-pointer px-4 py-2 text-white bg-indigo-700 hover:bg-indigo-800 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-800"
             :disabled="loading"
 
           >
@@ -52,7 +52,7 @@
       </form>
       
       <div class="mt-6 text-center">
-        <NuxtLink to="/" class="text-sm text-sky-700 hover:underline">Вернуться на сайт</NuxtLink>
+        <NuxtLink to="/" class="text-sm text-indigo-700 hover:underline">Вернуться на сайт</NuxtLink>
       </div>
     </div>
   </div>

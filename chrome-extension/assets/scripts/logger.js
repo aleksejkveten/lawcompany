@@ -1,6 +1,9 @@
 // Local logging system for Court Data Collector Chrome Extension
 // This module provides comprehensive logging capabilities with local storage
 
+// Prevent multiple declarations
+if (typeof window.ExtensionLogger === 'undefined') {
+
 class ExtensionLogger {
     constructor(maxLogs = 1000, storageKey = 'court_data_collector_logs') {
         this.maxLogs = maxLogs;
@@ -335,6 +338,8 @@ class ExtensionLogger {
 
 // Create global logger instance
 window.ExtensionLogger = window.ExtensionLogger || new ExtensionLogger();
+
+} // End of ExtensionLogger check
 
 // Export for module systems
 if (typeof module !== 'undefined' && module.exports) {

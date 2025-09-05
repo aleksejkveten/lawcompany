@@ -3,136 +3,145 @@
 <head>
     <meta charset="utf-8">
     <title>Court Data Collector</title>
-    <link rel="stylesheet" href="assets/styles/sidebar.css">
+    <!-- CSS will be injected by content script -->
 </head>
 <body>
-    <div class="sidebar-container">
+    <div class="cdc-sidebar-root">
         <!-- Header -->
-        <div class="sidebar-header">
+        <div class="cdc-sidebar-header">
             <h1>Court Data Collector</h1>
-            <button class="close-btn" id="closeSidebar">×</button>
+            <button class="cdc-close-btn" id="closeSidebar">×</button>
         </div>
         
         <!-- Top Menu -->
-        <div class="sidebar-menu">
-            <button class="menu-btn active" data-tab="data-collection">Сбор данных</button>
-            <button class="menu-btn" data-tab="data-retrieval">Получение данных</button>
-            <button class="menu-btn" data-tab="logs">Логи</button>
-            <button class="menu-btn settings-btn" data-tab="settings">⚙️</button>
+        <div class="cdc-sidebar-menu">
+            <button class="cdc-menu-btn cdc-active" data-tab="data-collection">Сбор данных</button>
+            <button class="cdc-menu-btn" data-tab="data-retrieval">Получение данных</button>
+            <button class="cdc-menu-btn" data-tab="logs">Логи</button>
+            <button class="cdc-menu-btn cdc-settings-btn" data-tab="settings">⚙️</button>
         </div>
         
         <!-- Tab Content -->
-        <div class="sidebar-content">
+        <div class="cdc-sidebar-content">
             <!-- Settings Tab -->
-            <div id="settings" class="tab-content">
+            <div id="settings" class="cdc-tab-content">
                 <h2>Настройки</h2>
-                <div class="input-group">
+                <div class="cdc-input-group">
                     <label for="api-key">API ключ:</label>
-                    <div class="api-key-container">
+                    <div class="cdc-api-key-container">
                         <input type="password" id="api-key" placeholder="Введите API ключ" />
                         <button id="toggle-api-key">👁</button>
                     </div>
                 </div>
-                <button id="save-settings" class="btn">Сохранить настройки</button>
+                <button id="save-settings" class="cdc-btn">Сохранить настройки</button>
             </div>
             
             <!-- Data Collection Tab -->
-            <div id="data-collection" class="tab-content active">
-                <h2>Сбор данных</h2>
-                
+            <div id="data-collection" class="cdc-tab-content cdc-active">
                 <!-- Configuration Block -->
-                <div class="config-block" id="config-block">
-                    <div class="config-header" id="config-header">
+                <div class="cdc-config-block" id="config-block">
+                    <div class="cdc-config-header" id="config-header">
                         <h3>Настройки сбора данных</h3>
-                        <button class="toggle-btn">▼</button>
+                        <button class="cdc-toggle-btn" id="config-toggle">▼</button>
                     </div>
-                    <div class="config-content" id="config-content">
-                        <div class="config-tabs">
-                            <button class="config-tab active" data-config="new">Сбор новых</button>
-                            <button class="config-tab disabled" data-config="check">Проверка текущих</button>
+                    <div class="cdc-config-content cdc-collapsed" id="config-content">
+                        <div class="cdc-config-tabs">
+                            <button class="cdc-config-tab cdc-active" data-config="new">Сбор новых</button>
+                            <button class="cdc-config-tab" data-config="check">Проверка текущих</button>
                         </div>
                         
-                        <div class="config-form">
-                            <div class="input-group">
+                        <div class="cdc-config-form" id="new-config">
+                            <div class="cdc-input-group">
                                 <label>Взыскатель:</label>
                                 <input type="text" id="claimant-filter" placeholder="Введите взыскателя">
                             </div>
-                            <div class="input-group">
+                            <div class="cdc-input-group">
                                 <label>Должник:</label>
                                 <input type="text" id="debtor-filter" placeholder="Введите должника">
                             </div>
-                            <div class="input-group">
+                            <div class="cdc-input-group">
                                 <label>Список судов:</label>
-                                <div class="court-selection">
-                                    <div class="checkbox-item">
-                                        <input type="checkbox" id="court1" value="court1">
-                                        <label for="court1">Суд 1</label>
+                                <div class="cdc-court-selection">
+                                    <div class="cdc-checkbox-item">
+                                        <input type="checkbox" id="court-minsk" value="minsk">
+                                        <label for="court-minsk">Экономический суд г. Минска</label>
                                     </div>
-                                    <div class="checkbox-item">
-                                        <input type="checkbox" id="court2" value="court2">
-                                        <label for="court2">Суд 2</label>
+                                    <div class="cdc-checkbox-item">
+                                        <input type="checkbox" id="court-minsk-region" value="minsk-region">
+                                        <label for="court-minsk-region">Экономический суд Минской области</label>
+                                    </div>
+                                    <div class="cdc-checkbox-item">
+                                        <input type="checkbox" id="court-grodno" value="grodno">
+                                        <label for="court-grodno">Экономический суд Гродненской области</label>
+                                    </div>
+                                    <div class="cdc-checkbox-item">
+                                        <input type="checkbox" id="court-gomel" value="gomel">
+                                        <label for="court-gomel">Экономический суд Гомельской области</label>
+                                    </div>
+                                    <div class="cdc-checkbox-item">
+                                        <input type="checkbox" id="court-mogilev" value="mogilev">
+                                        <label for="court-mogilev">Экономический суд Могилевской области</label>
+                                    </div>
+                                    <div class="cdc-checkbox-item">
+                                        <input type="checkbox" id="court-vitebsk" value="vitebsk">
+                                        <label for="court-vitebsk">Экономический суд Витебской области</label>
+                                    </div>
+                                    <div class="cdc-checkbox-item">
+                                        <input type="checkbox" id="court-brest" value="brest">
+                                        <label for="court-brest">Экономический суд Брестской области</label>
                                     </div>
                                 </div>
                             </div>
-                            <div class="input-group">
-                                <label>
-                                    <input type="radio" name="search-mode" value="all" checked>
-                                    Все сразу
-                                </label>
-                                <label>
-                                    <input type="radio" name="search-mode" value="one-by-one">
-                                    По одному
-                                </label>
-                            </div>
-                            <div class="input-group">
-                                <label>
-                                    <input type="checkbox" id="auto-search">
-                                    Автоматический поиск
-                                </label>
+                        </div>
+                        
+                        <div class="cdc-config-form" id="check-config" style="display: none;">
+                            <div class="cdc-input-group">
+                                <label>Период проверки:</label>
+                                <select id="check-period">
+                                    <option value="today">Сегодня</option>
+                                    <option value="week">Последняя неделя</option>
+                                    <option value="month">Последний месяц</option>
+                                </select>
                             </div>
                         </div>
                         
-                        <div class="development-notice">
+                        <div class="cdc-development-notice">
                             <p>⚠️ В разработке</p>
                         </div>
                     </div>
                 </div>
                 
                 <!-- Action Buttons -->
-                <div class="action-section">
-                    <button id="collect-data" class="btn btn-primary">Собрать данные</button>
-                    <div class="auto-controls">
-                        <button id="start-auto" class="btn btn-secondary disabled">Запустить автоматический поиск</button>
-                        <button id="stop-auto" class="btn btn-secondary disabled">Остановить автоматический поиск</button>
-                    </div>
+                <div class="cdc-action-section">
+                    <button id="collect-data" class="cdc-btn cdc-btn-primary">Собрать данные</button>
                 </div>
                 
-                <!-- Loading and Status -->
-                <div id="loading-indicator" class="loading-indicator" style="display: none;">
-                    <div class="spinner"></div>
+                <!-- Loading and Status (hidden by default) -->
+                <div id="loading-indicator" class="cdc-loading-indicator" style="display: none;">
+                    <div class="cdc-spinner"></div>
                     <p>Обработка данных...</p>
                 </div>
                 
-                <div id="status-message" class="status-message"></div>
+                <div id="status-message" class="cdc-status-message"></div>
             </div>
             
             <!-- Data Retrieval Tab -->
-            <div id="data-retrieval" class="tab-content">
+            <div id="data-retrieval" class="cdc-tab-content">
                 <h2>Получение данных</h2>
-                <button id="retrieve-data" class="btn btn-primary">Получить данные</button>
+                <button id="retrieve-data" class="cdc-btn cdc-btn-primary">Получить данные</button>
                 
-                <div id="data-results" class="data-results">
+                <div id="data-results" class="cdc-data-results">
                     <!-- Results will be populated here -->
                 </div>
             </div>
             
             <!-- Logs Tab -->
-            <div id="logs" class="tab-content">
+            <div id="logs" class="cdc-tab-content">
                 <h2>Логи расширения</h2>
                 
                 <!-- Log Controls -->
-                <div class="log-controls">
-                    <div class="log-filters">
+                <div class="cdc-log-controls">
+                    <div class="cdc-log-filters">
                         <select id="log-level-filter">
                             <option value="">Все уровни</option>
                             <option value="ERROR">Ошибки</option>
@@ -152,26 +161,26 @@
                         <input type="text" id="log-search" placeholder="Поиск в логах...">
                     </div>
                     
-                    <div class="log-actions">
-                        <button id="refresh-logs" class="btn btn-small">Обновить</button>
-                        <button id="clear-logs" class="btn btn-small btn-danger">Очистить</button>
-                        <button id="export-logs" class="btn btn-small">Экспорт</button>
+                    <div class="cdc-log-actions">
+                        <button id="refresh-logs" class="cdc-btn cdc-btn-small">Обновить</button>
+                        <button id="clear-logs" class="cdc-btn cdc-btn-small cdc-btn-danger">Очистить</button>
+                        <button id="export-logs" class="cdc-btn cdc-btn-small">Экспорт</button>
                     </div>
                 </div>
                 
                 <!-- Log Statistics -->
-                <div id="log-stats" class="log-stats">
+                <div id="log-stats" class="cdc-log-stats">
                     <!-- Stats will be populated here -->
                 </div>
                 
                 <!-- Log Entries -->
-                <div id="log-entries" class="log-entries">
+                <div id="log-entries" class="cdc-log-entries">
                     <!-- Log entries will be populated here -->
                 </div>
             </div>
         </div>
     </div>
     
-    <script src="assets/scripts/sidebar.js"></script>
+    <!-- Scripts will be injected by content script -->
 </body>
 </html>
