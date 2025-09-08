@@ -72,15 +72,25 @@
               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Имя истца"
             >
-            <select
-              v-model="form.claimantCompanyId"
-              class="w-full mt-2 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">Выберите компанию истца (опционально)</option>
-              <option v-for="company in companies" :key="company.id" :value="company.id">
-                {{ company.name }} {{ company.unp ? `(${company.unp})` : '' }}
-              </option>
-            </select>
+            <div class="flex gap-2 mt-2">
+              <select
+                v-model="form.claimantCompanyId"
+                class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Выберите компанию истца (опционально)</option>
+                <option v-for="company in companies" :key="company.id" :value="company.id">
+                  {{ company.name }} {{ company.unp ? `(${company.unp})` : '' }}
+                </option>
+              </select>
+              <button
+                v-if="form.claimantCompanyId"
+                type="button"
+                @click="showClaimantDetails"
+                class="px-3 py-2 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 text-sm whitespace-nowrap"
+              >
+                Подробнее
+              </button>
+            </div>
           </div>
 
           <div>
@@ -95,15 +105,25 @@
               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Имя ответчика"
             >
-            <select
-              v-model="form.debtorCompanyId"
-              class="w-full mt-2 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">Выберите компанию ответчика (опционально)</option>
-              <option v-for="company in companies" :key="company.id" :value="company.id">
-                {{ company.name }} {{ company.unp ? `(${company.unp})` : '' }}
-              </option>
-            </select>
+            <div class="flex gap-2 mt-2">
+              <select
+                v-model="form.debtorCompanyId"
+                class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Выберите компанию ответчика (опционально)</option>
+                <option v-for="company in companies" :key="company.id" :value="company.id">
+                  {{ company.name }} {{ company.unp ? `(${company.unp})` : '' }}
+                </option>
+              </select>
+              <button
+                v-if="form.debtorCompanyId"
+                type="button"
+                @click="showDebtorDetails"
+                class="px-3 py-2 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 text-sm whitespace-nowrap"
+              >
+                Подробнее
+              </button>
+            </div>
           </div>
         </div>
 
@@ -193,6 +213,13 @@
         </div>
       </form>
     </div>
+    
+    <!-- Company Details Modal -->
+    <CompanyViewModal 
+      :is-open="isCompanyModalOpen" 
+      :company-id="selectedCompanyId" 
+      @close="closeCompanyModal" 
+    />
   </div>
   </NuxtLayout>
 </template>
@@ -207,6 +234,10 @@ const toast = useToast()
 
 const submitting = ref(false)
 const companies = ref([])
+
+// Company modal state
+const isCompanyModalOpen = ref(false)
+const selectedCompanyId = ref(null)
 
 const form = ref({
   caseNumber: '',
@@ -267,6 +298,26 @@ const submitForm = async () => {
   } finally {
     submitting.value = false
   }
+}
+
+// Company modal functions
+const showClaimantDetails = () => {
+  if (form.value.claimantCompanyId) {
+    selectedCompanyId.value = form.value.claimantCompanyId
+    isCompanyModalOpen.value = true
+  }
+}
+
+const showDebtorDetails = () => {
+  if (form.value.debtorCompanyId) {
+    selectedCompanyId.value = form.value.debtorCompanyId
+    isCompanyModalOpen.value = true
+  }
+}
+
+const closeCompanyModal = () => {
+  isCompanyModalOpen.value = false
+  selectedCompanyId.value = null
 }
 
 // Load data on mount

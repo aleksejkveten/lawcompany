@@ -229,7 +229,7 @@ const searchQuery = ref('')
 
 const pagination = ref({
   page: 1,
-  limit: 2,
+  limit: 20,
   total: 0,
   pages: 0
 })
@@ -238,19 +238,19 @@ const pagination = ref({
 const fetchCompanies = async () => {
   loading.value = true
   try {
-    const { data } = await $fetch('/api/panel/companies', {
+    const response = await $fetch('/api/panel/companies', {
       query: {
         page: pagination.value?.page || 1,
         limit: pagination.value?.limit || 10,
         search: searchQuery.value || ''
       }
     })
-    console.log('Data:', data)
-    companies.value = data?.data || []
-    if (data?.pagination) {
+    console.log('Response:', response)
+    companies.value = response?.data || []
+    if (response?.pagination) {
       pagination.value = {
         ...pagination.value,
-        ...data.pagination
+        ...response.pagination
       }
     }
   } catch (error) {

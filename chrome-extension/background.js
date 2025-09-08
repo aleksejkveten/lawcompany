@@ -22,7 +22,7 @@ chrome.action.onClicked.addListener(async (tab) => {
         
         console.log('Sidebar toggle response:', response);
     } catch (error) {
-        console.error('Error toggling sidebar:', error);
+        console.log('Error toggling sidebar:', error);
         
         // If content script is not ready, inject it
         try {
@@ -32,17 +32,17 @@ chrome.action.onClicked.addListener(async (tab) => {
             });
             
             // Wait a moment for content script to initialize
-            setTimeout(async () => {
+            setTimeout(async function retryToggleSidebar() {
                 try {
                     await chrome.tabs.sendMessage(tab.id, {
                         action: 'toggleSidebar'
                     });
                 } catch (retryError) {
-                    console.error('Retry error:', retryError);
+                    console.log('Retry error:', retryError);
                 }
             }, 500);
         } catch (injectionError) {
-            console.error('Failed to inject content script:', injectionError);
+            console.log('Failed to inject content script:', injectionError);
         }
     }
 });
@@ -92,7 +92,7 @@ async function ensureContentScriptInjected(tabId) {
 }
 
 // Handle extension installation
-chrome.runtime.onInstalled.addListener(function() {
+chrome.runtime.onInstalled.addListener(function handleExtensionInstall() {
     console.log('Extension installed');
     
     // Initialize storage with default values
@@ -109,18 +109,18 @@ chrome.runtime.onInstalled.addListener(function() {
 });
 
 // Handle messages from popup or content scripts
-chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+chrome.runtime.onMessage.addListener(function handleRuntimeMessage(request, sender, sendResponse) {
     console.log('Background script received message:', request);
     
     if (request.action === 'getStorageData') {
-        chrome.storage.local.get(request.key, function(data) {
+        chrome.storage.local.get(request.key, function handleGetStorageData(data) {
             sendResponse(data);
         });
         return true; // Will respond asynchronously
     }
     
     if (request.action === 'setStorageData') {
-        chrome.storage.local.set(request.data, function() {
+        chrome.storage.local.set(request.data, function handleSetStorageData() {
             sendResponse({ success: true });
         });
         return true;
@@ -139,7 +139,7 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
             // Forward request to content script
             chrome.tabs.sendMessage(sender.tab.id, {
                 action: 'collectData'
-            }, (response) => {
+            }, function handleCollectDataResponse(response) {
                 sendResponse(response);
             });
         } else {
@@ -148,7 +148,7 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
         return true; // Keep message channel open for async response
     } else if (request.action === 'getSettings') {
         // Get stored settings
-        chrome.storage.local.get(['apiKey', 'serverUrl'], (result) => {
+        chrome.storage.local.get(['apiKey', 'serverUrl'], function handleGetSettings(result) {
             sendResponse({ 
                 success: true, 
                 settings: {
@@ -163,7 +163,7 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
         chrome.storage.local.set({
             apiKey: request.settings.apiKey,
             serverUrl: request.settings.serverUrl
-        }, () => {
+        }, function handleSaveSettings() {
             sendResponse({ success: true, message: 'Settings saved' });
         });
         return true; // Keep message channel open for async response
@@ -171,7 +171,7 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 });
 
 // Example: Listen for tab updates for potential data collection
-chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
+chrome.tabs.onUpdated.addListener(function handleTabUpdate(tabId, changeInfo, tab) {
     if (changeInfo.status === 'complete') {
         console.log('Tab loaded:', tab.url);
         // Could trigger data collection here if enabled

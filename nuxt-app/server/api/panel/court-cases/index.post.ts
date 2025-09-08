@@ -1,5 +1,5 @@
 // API endpoint для создания нового судебного дела
-import prisma from "../../../../lib/prisma";
+import prisma from "../../../utils/prisma";
 import { randomUUID } from 'crypto'
 
 export default defineEventHandler(async (event) => {
@@ -7,10 +7,7 @@ export default defineEventHandler(async (event) => {
     const body = await readBody(event)
     
     // Валидация обязательных полей
-    const requiredFields = [
-      'claimant', 'debtor', 'registrationNumber', 'caseNumber', 
-      'incomingNumber', 'receiptDate', 'debtAmount', 'decision', 'courtName'
-    ]
+    const requiredFields = ['claimant', 'debtor', 'incomingNumber', 'courtName']
     
     for (const field of requiredFields) {
       if (!body[field]) {
@@ -29,13 +26,15 @@ export default defineEventHandler(async (event) => {
           claimantCompanyId: body.claimantCompanyId || null,
           debtor: body.debtor,
           debtorCompanyId: body.debtorCompanyId || null,
-          registrationNumber: body.registrationNumber,
-          caseNumber: body.caseNumber,
+          registrationNumber: body.registrationNumber || '',
+          caseNumber: body.caseNumber || null,
           incomingNumber: body.incomingNumber,
-          receiptDate: new Date(body.receiptDate),
-          debtAmount: parseFloat(body.debtAmount),
-          decision: body.decision,
-          courtName: body.courtName
+          receiptDate: body.receiptDate ? new Date(body.receiptDate) : null,
+          debtAmount: body.debtAmount ? parseFloat(body.debtAmount) : null,
+          decision: body.decision || null,
+          courtName: body.courtName,
+          notes: body.notes || null,
+          track: body.track || false
         },
         include: {
           claimantCompany: {

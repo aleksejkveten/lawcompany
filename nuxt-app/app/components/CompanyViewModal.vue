@@ -1,208 +1,138 @@
 <template>
-  <div v-if="isOpen" class="fixed inset-0 z-50 overflow-y-auto">
-    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-      <!-- Фон -->
-      <div 
-        class="fixed inset-0 transition-opacity" 
-        @click="$emit('close')"
-      >
-        <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+  <div v-if="isOpen" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50" @click="close">
+    <div class="relative top-10 mx-auto p-6 border w-11/12 md:w-4/5 lg:w-3/4 xl:w-2/3 max-w-4xl shadow-lg rounded-md bg-white" @click.stop>
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between pb-3 border-b">
+        <h3 class="text-lg font-medium text-gray-900">
+          Информация о компании
+        </h3>
+        <button @click="close" class="text-gray-400 hover:text-gray-600">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
       </div>
 
-      <!-- Модальное окно -->
-      <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
-        <div class="bg-white px-4 pt-5 pb-4 sm:p-6">
-          <div class="flex justify-between items-start mb-6">
-            <div>
-              <h3 class="text-xl font-medium text-gray-900 mb-2">{{ company?.name }}</h3>
-              <div class="space-y-1">
-                <p v-if="company?.unp" class="text-sm text-gray-600">УНП: {{ company.unp }}</p>
-                <p v-if="company?.aliases" class="text-sm text-gray-600">Псевдонимы: {{ company.aliases }}</p>
-                <div v-if="company?.track" class="flex items-center">
-                  <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                    <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                    </svg>
-                    Отслеживается
-                  </span>
-                </div>
-                <div v-if="company?.notes" class="mt-2">
-                  <p class="text-sm text-gray-600">
-                    <span class="font-medium">Заметки:</span> {{ company.notes }}
-                  </p>
-                </div>
-              </div>
-            </div>
-            <button 
-              @click="$emit('close')" 
-              class="text-gray-400 hover:text-gray-600"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
+      <!-- Loading State -->
+      <div v-if="loading" class="py-8 text-center">
+        <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <p class="mt-2 text-gray-600">Загрузка...</p>
+      </div>
 
-          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <!-- Контактные лица -->
+      <!-- Error State -->
+      <div v-else-if="error" class="py-8 text-center text-red-600">
+        <p>{{ error }}</p>
+      </div>
+
+      <!-- Company Details -->
+      <div v-else-if="company" class="pt-4 space-y-6 max-h-[70vh] overflow-y-auto">
+        <!-- Basic Information -->
+        <div>
+          <h4 class="text-lg font-medium text-gray-900 mb-4">Основная информация</h4>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 text-sm">
             <div>
-              <h4 class="text-lg font-medium text-gray-900 mb-4">Контактные лица</h4>
+              <label class="block text-xs font-medium text-gray-500 mb-1">Название компании</label>
+              <p class="text-gray-900 font-medium">{{ company.name }}</p>
+            </div>
+            
+            <div v-if="company.unp">
+              <label class="block text-xs font-medium text-gray-500 mb-1">УНП</label>
+              <p class="text-gray-900">{{ company.unp }}</p>
+            </div>
+            
+            <div v-if="company.aliases">
+              <label class="block text-xs font-medium text-gray-500 mb-1">Псевдонимы</label>
+              <p class="text-gray-900">{{ company.aliases }}</p>
+            </div>
+            
+            <div>
+              <label class="block text-xs font-medium text-gray-500 mb-1">Статус отслеживания</label>
+              <span :class="company.track ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'"
+                    class="inline-flex px-2 py-1 text-xs font-medium rounded-full">
+                {{ company.track ? 'Отслеживается' : 'Не отслеживается' }}
+              </span>
+            </div>
+          </div>
+          
+          <div v-if="company.notes" class="mt-4">
+            <label class="block text-xs font-medium text-gray-500 mb-2">Заметки</label>
+            <div class="bg-gray-50 rounded-md p-3">
+              <p class="text-gray-900 text-sm whitespace-pre-wrap">{{ company.notes }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Contact Persons -->
+        <div v-if="company.contactPersons?.length">
+          <h4 class="text-lg font-medium text-gray-900 mb-4">Контактные лица</h4>
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div v-for="contact in company.contactPersons" :key="contact.id" 
+                 class="border border-gray-200 rounded-lg p-3">
+              <h5 class="font-medium text-gray-900 mb-3">Контактное лицо</h5>
+              <div class="text-sm font-semibold text-blue-700 mb-2">{{ contact.name }}</div>
               
-              <div v-if="!company?.contactPersons?.length" class="text-gray-500 italic">
-                Контактные лица не добавлены
-              </div>
-              
-              <div 
-                v-else 
-                v-for="contact in company.contactPersons" 
-                :key="contact.id"
-                class="border border-gray-200 rounded-lg p-4 mb-4"
-              >
-                <h5 class="font-medium text-gray-800 mb-3">{{ contact.name }}</h5>
-                
-                <!-- Телефоны -->
-                <div v-if="contact.phones?.length" class="mb-3">
-                  <h6 class="text-sm font-medium text-gray-700 mb-2">Телефоны:</h6>
-                  <div class="space-y-1">
-                    <a 
-                      v-for="phone in contact.phones" 
-                      :key="phone.id"
-                      :href="`tel:${phone.number}`"
-                      class="block text-sm text-blue-600 hover:text-blue-800"
-                    >
+              <!-- Phones -->
+              <div v-if="contact.phones?.length" class="mb-2">
+                <label class="block text-xs font-medium text-gray-500 mb-1">Телефоны:</label>
+                <div class="space-y-1">
+                  <div v-for="phone in contact.phones" :key="phone.id" class="flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                    </svg>
+                    <a :href="`tel:${phone.number}`" class="text-blue-600 hover:text-blue-800 text-xs">
                       {{ phone.number }}
                     </a>
                   </div>
                 </div>
-                
-                <!-- Email адреса -->
-                <div v-if="contact.emails?.length" class="mb-3">
-                  <h6 class="text-sm font-medium text-gray-700 mb-2">Email адреса:</h6>
-                  <div class="space-y-1">
-                    <a 
-                      v-for="email in contact.emails" 
-                      :key="email.id"
-                      :href="`mailto:${email.address}`"
-                      class="block text-sm text-blue-600 hover:text-blue-800"
-                    >
+              </div>
+              
+              <!-- Emails -->
+              <div v-if="contact.emails?.length">
+                <label class="block text-xs font-medium text-gray-500 mb-1">Email адреса:</label>
+                <div class="space-y-1">
+                  <div v-for="email in contact.emails" :key="email.id" class="flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+                    </svg>
+                    <a :href="`mailto:${email.address}`" class="text-blue-600 hover:text-blue-800 text-xs">
                       {{ email.address }}
                     </a>
                   </div>
                 </div>
-                
-                <div v-if="!contact.phones?.length && !contact.emails?.length" class="text-sm text-gray-500 italic">
-                  Контактная информация не добавлена
-                </div>
-              </div>
-            </div>
-
-            <!-- Судебные дела -->
-            <div>
-              <h4 class="text-lg font-medium text-gray-900 mb-4">Судебные дела</h4>
-              
-              <!-- Дела как истец -->
-              <div v-if="company?.courtCasesAsClaimant?.length" class="mb-4">
-                <h5 class="text-sm font-medium text-green-700 mb-2">Как истец ({{ company.courtCasesAsClaimant.length }}):</h5>
-                <div class="space-y-2 max-h-40 overflow-y-auto">
-                  <div 
-                    v-for="courtCase in company.courtCasesAsClaimant" 
-                    :key="courtCase.id"
-                    class="bg-green-50 border border-green-200 rounded-md p-3"
-                  >
-                    <div class="text-sm font-medium text-gray-900">{{ courtCase.caseNumber }}</div>
-                    <div class="text-xs text-gray-600">Сумма: {{ formatCurrency(courtCase.debtAmount) }}</div>
-                    <div class="text-xs text-gray-500">{{ formatDate(courtCase.createdAt) }}</div>
-                  </div>
-                </div>
-              </div>
-              
-              <!-- Дела как ответчик -->
-              <div v-if="company?.courtCasesAsDebtor?.length" class="mb-4">
-                <h5 class="text-sm font-medium text-red-700 mb-2">Как ответчик ({{ company.courtCasesAsDebtor.length }}):</h5>
-                <div class="space-y-2 max-h-40 overflow-y-auto">
-                  <div 
-                    v-for="courtCase in company.courtCasesAsDebtor" 
-                    :key="courtCase.id"
-                    class="bg-red-50 border border-red-200 rounded-md p-3"
-                  >
-                    <div class="text-sm font-medium text-gray-900">{{ courtCase.caseNumber }}</div>
-                    <div class="text-xs text-gray-600">Сумма: {{ formatCurrency(courtCase.debtAmount) }}</div>
-                    <div class="text-xs text-gray-500">{{ formatDate(courtCase.createdAt) }}</div>
-                  </div>
-                </div>
-              </div>
-              
-              <div v-if="!company?.courtCasesAsClaimant?.length && !company?.courtCasesAsDebtor?.length" class="text-gray-500 italic">
-                Судебных дел нет
-              </div>
-            </div>
-            
-            <!-- Отправленные SMS и Email -->
-            <div>
-              <h4 class="text-lg font-medium text-gray-900 mb-4">Отправленные сообщения</h4>
-              
-              <!-- SMS -->
-              <div v-if="relatedSms?.length" class="mb-4">
-                <h5 class="text-sm font-medium text-blue-700 mb-2">SMS ({{ relatedSms.length }}):</h5>
-                <div class="space-y-2 max-h-40 overflow-y-auto">
-                  <div 
-                    v-for="sms in relatedSms" 
-                    :key="sms.id"
-                    class="bg-blue-50 border border-blue-200 rounded-md p-3"
-                  >
-                    <div class="text-sm font-medium text-gray-900">{{ sms.phone }}</div>
-                    <div class="text-xs text-gray-600 truncate">{{ sms.content }}</div>
-                    <div class="text-xs text-gray-500">{{ formatDate(sms.createdAt) }}</div>
-                  </div>
-                </div>
-              </div>
-              
-              <!-- Email -->
-              <div v-if="relatedEmails?.length" class="mb-4">
-                <h5 class="text-sm font-medium text-purple-700 mb-2">Email ({{ relatedEmails.length }}):</h5>
-                <div class="space-y-2 max-h-40 overflow-y-auto">
-                  <div 
-                    v-for="email in relatedEmails" 
-                    :key="email.id"
-                    class="bg-purple-50 border border-purple-200 rounded-md p-3"
-                  >
-                    <div class="text-sm font-medium text-gray-900">{{ email.email }}</div>
-                    <div class="text-xs text-gray-700 font-medium">{{ email.subject }}</div>
-                    <div class="text-xs text-gray-600 truncate">{{ email.content }}</div>
-                    <div class="text-xs text-gray-500">{{ formatDate(email.createdAt) }}</div>
-                  </div>
-                </div>
-              </div>
-              
-              <div v-if="!relatedSms?.length && !relatedEmails?.length" class="text-gray-500 italic">
-                Отправленных сообщений нет
-              </div>
-            </div>
-          </div>
-
-          <!-- Информация о создании -->
-          <div class="mt-6 pt-6 border-t border-gray-200">
-            <div class="grid grid-cols-2 gap-4 text-sm text-gray-600">
-              <div>
-                <span class="font-medium">Дата создания:</span>
-                {{ formatDate(company?.createdAt) }}
-              </div>
-              <div>
-                <span class="font-medium">Последнее обновление:</span>
-                {{ formatDate(company?.updatedAt) }}
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Кнопка закрытия -->
-        <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-          <button 
-            @click="$emit('close')" 
-            class="w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:w-auto sm:text-sm"
-          >
+        <!-- Summary Stats -->
+        <div v-if="company.courtCasesAsClaimant?.length || company.courtCasesAsDebtor?.length" class="bg-gray-50 rounded-lg p-3">
+          <h4 class="text-sm font-medium text-gray-900 mb-2">Связанные судебные дела</h4>
+          <div class="grid grid-cols-2 gap-4 text-center">
+            <div class="bg-green-100 rounded-md p-2">
+              <div class="text-lg font-bold text-green-800">{{ company.courtCasesAsClaimant?.length || 0 }}</div>
+              <div class="text-xs text-green-600">Как истец</div>
+            </div>
+            <div class="bg-red-100 rounded-md p-2">
+              <div class="text-lg font-bold text-red-800">{{ company.courtCasesAsDebtor?.length || 0 }}</div>
+              <div class="text-xs text-red-600">Как ответчик</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="flex justify-between items-center pt-4 border-t mt-6">
+        <div class="text-sm text-gray-500">
+          Обновлено: {{ company ? formatDate(company.updatedAt) : '' }}
+        </div>
+        <div class="flex space-x-3">
+          <button @click="close" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300">
             Закрыть
           </button>
+          <NuxtLink v-if="company" :to="`/panel/companies/${company.id}/edit`" 
+                    class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+            Редактировать
+          </NuxtLink>
         </div>
       </div>
     </div>
@@ -210,94 +140,31 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
-
 const props = defineProps({
-  isOpen: Boolean,
-  company: Object
+  isOpen: {
+    type: Boolean,
+    default: false
+  },
+  companyId: {
+    type: [Number, String],
+    default: null
+  }
 })
 
 const emit = defineEmits(['close'])
 
-const relatedSms = ref([])
-const relatedEmails = ref([])
-const loadingRelated = ref(false)
+const company = ref(null)
+const loading = ref(false)
+const error = ref(null)
 
-// Получение связанных SMS и Email
-const fetchRelatedData = async () => {
-  if (!props.company?.id) return
-  
-  loadingRelated.value = true
-  try {
-    // Получаем все телефоны и email компании
-    const phones = []
-    const emails = []
-    
-    if (props.company.contactPersons) {
-      props.company.contactPersons.forEach(contact => {
-        if (contact.phones) {
-          phones.push(...contact.phones.map(p => p.number))
-        }
-        if (contact.emails) {
-          emails.push(...contact.emails.map(e => e.address))
-        }
-      })
-    }
-    
-    // Получаем SMS по телефонам
-    if (phones.length > 0) {
-      try {
-        // Пока что оставляем пустым, так как API ендпоинт может не существовать
-        relatedSms.value = []
-        // const smsResponse = await $fetch('/api/panel/sms', {
-        //   query: {
-        //     phones: phones.join(',')
-        //   }
-        // })
-        // relatedSms.value = smsResponse?.data || []
-      } catch (error) {
-        console.error('Error fetching SMS:', error)
-        relatedSms.value = []
-      }
-    }
-    
-    // Получаем Email по адресам
-    if (emails.length > 0) {
-      try {
-        // Пока что оставляем пустым, так как API ендпоинт может не существовать
-        relatedEmails.value = []
-        // const emailResponse = await $fetch('/api/panel/emails', {
-        //   query: {
-        //     emails: emails.join(',')
-        //   }
-        // })
-        // relatedEmails.value = emailResponse?.data || []
-      } catch (error) {
-        console.error('Error fetching emails:', error)
-        relatedEmails.value = []
-      }
-    }
-  } catch (error) {
-    console.error('Error fetching related data:', error)
-  } finally {
-    loadingRelated.value = false
-  }
+const close = () => {
+  emit('close')
 }
 
-// Отслеживаем открытие модального окна и загружаем данные
-watch(() => props.isOpen, (newVal) => {
-  if (newVal && props.company) {
-    fetchRelatedData()
-  } else {
-    relatedSms.value = []
-    relatedEmails.value = []
-  }
-})
-
-// Форматирование даты
-const formatDate = (date) => {
-  if (!date) return '-'
-  return new Date(date).toLocaleDateString('ru-RU', {
+// Format date helper
+const formatDate = (dateString) => {
+  if (!dateString) return 'Не указано'
+  return new Date(dateString).toLocaleDateString('ru-RU', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
@@ -306,12 +173,34 @@ const formatDate = (date) => {
   })
 }
 
-// Форматирование валюты
-const formatCurrency = (amount) => {
-  if (!amount) return '0 BYN'
-  return new Intl.NumberFormat('ru-RU', {
-    style: 'currency',
-    currency: 'BYN'
-  }).format(amount)
+const fetchCompany = async () => {
+  if (!props.companyId) return
+  
+  try {
+    loading.value = true
+    error.value = null
+    const { data } = await $fetch(`/api/panel/companies/${props.companyId}`)
+    company.value = data
+  } catch (err) {
+    console.error('Error fetching company:', err)
+    error.value = 'Ошибка при загрузке данных компании'
+  } finally {
+    loading.value = false
+  }
 }
+
+// Watch for changes in companyId and isOpen
+watch([() => props.companyId, () => props.isOpen], () => {
+  if (props.isOpen && props.companyId) {
+    fetchCompany()
+  }
+})
+
+// Clear data when modal closes
+watch(() => props.isOpen, (isOpen) => {
+  if (!isOpen) {
+    company.value = null
+    error.value = null
+  }
+})
 </script>

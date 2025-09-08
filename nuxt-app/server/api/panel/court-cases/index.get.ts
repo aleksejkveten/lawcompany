@@ -8,13 +8,17 @@ export default defineEventHandler(async (event) => {
     const page = parseInt(query.page as string) || 1
     const limit = parseInt(query.limit as string) || 10
     const search = query.search as string || ''
+    const dateAddedFrom = query.dateAddedFrom as string
+    const dateAddedTo = query.dateAddedTo as string
+    const dateCreatedFrom = query.dateCreatedFrom as string
+    const dateCreatedTo = query.dateCreatedTo as string
     
     const skip = (page - 1) * limit
     
     // Инициализируем Prisma клиент
     
     // Создаем условие поиска
-      const where = {
+      const where: any = {
         isDeleted: false,
         ...(search && {
           OR: [
@@ -26,6 +30,27 @@ export default defineEventHandler(async (event) => {
             { courtName: { contains: search } }
           ]
         })
+      }
+      
+      // Добавляем фильтры по датам
+      if (dateAddedFrom || dateAddedTo) {
+        where.createdAt = {}
+        if (dateAddedFrom) {
+          where.createdAt.gte = new Date(dateAddedFrom + 'T00:00:00.000Z')
+        }
+        if (dateAddedTo) {
+          where.createdAt.lte = new Date(dateAddedTo + 'T23:59:59.999Z')
+        }
+      }
+      
+      if (dateCreatedFrom || dateCreatedTo) {
+        where.receiptDate = {}
+        if (dateCreatedFrom) {
+          where.receiptDate.gte = new Date(dateCreatedFrom + 'T00:00:00.000Z')
+        }
+        if (dateCreatedTo) {
+          where.receiptDate.lte = new Date(dateCreatedTo + 'T23:59:59.999Z')
+        }
       }
       
       // Получаем судебные дела с пагинацией

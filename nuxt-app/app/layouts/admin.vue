@@ -89,7 +89,7 @@
         <div class="absolute bottom-6 left-3 right-3">
           <button 
             @click="logout" 
-            class="w-full flex items-center px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200"
+            class="w-full flex items-center px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 cursor-pointer"
             :title="sidebarCollapsed ? 'Выйти' : ''"
           >
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -127,7 +127,7 @@
             
             <div class="border-l border-gray-300 h-6"></div>
             
-            <h1 class="text-xl font-semibold text-gray-900">Админ Панель Суда</h1>
+            <h1 class="text-xl font-semibold text-gray-900">Админ Панель Юридической фирмы</h1>
           </div>
           
           <!-- User Info -->
@@ -144,7 +144,7 @@
       </header>
       
       <!-- Page Content -->
-      <main class="flex-1 overflow-auto">
+      <main class="flex-1">
         <slot></slot>
       </main>
     </div>

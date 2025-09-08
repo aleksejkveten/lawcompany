@@ -14,7 +14,7 @@ export default defineEventHandler(async (event) => {
     // Инициализируем Prisma клиент
     
     // Создаем условие поиска
-      const where = {
+      const where: any = {
         isDeleted: false,
         ...(search && {
           OR: [

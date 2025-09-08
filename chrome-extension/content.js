@@ -47,7 +47,7 @@ function initializeExtension() {
     });
     
     // Listen for extension icon click
-    chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+    chrome.runtime.onMessage.addListener(function handleExtensionMessage(request, sender, sendResponse) {
         console.log('Message received in content script:', request);
         logger.logExtensionEvent('message_received', {
             action: request.action,
@@ -79,8 +79,8 @@ function injectSidebar() {
     const sidebarURL = chrome.runtime.getURL('sidebar.html');
     
     fetch(sidebarURL)
-        .then(response => response.text())
-        .then(html => {
+        .then(function handleSidebarHTMLResponse(response) { return response.text(); })
+        .then(function handleSidebarHTMLContent(html) {
             // Remove the CSS and JS links from the HTML since we'll load them separately
             html = html.replace(/<link[^>]*href="assets\/styles\/sidebar\.css"[^>]*>/g, '');
             html = html.replace(/<script[^>]*src="assets\/scripts\/sidebar\.js"[^>]*><\/script>/g, '');
@@ -92,7 +92,7 @@ function injectSidebar() {
             const cssLink = document.createElement('link');
             cssLink.rel = 'stylesheet';
             cssLink.href = sidebarCSSURL;
-            cssLink.onload = function() {
+            cssLink.onload = function handleSidebarCSSLoad() {
                 console.log('Court Data Collector: Sidebar CSS loaded successfully');
                 
                 // Add a visible indicator that CSS is loaded
@@ -105,7 +105,7 @@ function injectSidebar() {
                     }
                 }
             };
-            cssLink.onerror = function(error) {
+            cssLink.onerror = function handleSidebarCSSError(error) {
                 console.error('Court Data Collector: Failed to load sidebar CSS:', error);
             };
             document.head.appendChild(cssLink);
@@ -122,7 +122,7 @@ function injectSidebar() {
             sidebarInjected = true;
             console.log('Court Data Collector: Sidebar injected successfully');
         })
-        .catch(error => {
+        .catch(function handleSidebarLoadError(error) {
             console.error('Court Data Collector: Failed to load sidebar HTML:', error);
         });
 }
@@ -196,7 +196,7 @@ function initializeSidebarEvents() {
     // Load logger first, then sidebar script
     const loggerScript = document.createElement('script');
     loggerScript.src = chrome.runtime.getURL('assets/scripts/logger.js');
-    loggerScript.onload = function() {
+    loggerScript.onload = function handleLoggerScriptLoad() {
         console.log('Court Data Collector: Logger script loaded');
         
         // Update global logger reference
@@ -205,10 +205,10 @@ function initializeSidebarEvents() {
         // Now load and execute sidebar JavaScript
         const sidebarScript = document.createElement('script');
         sidebarScript.src = chrome.runtime.getURL('assets/scripts/sidebar.js');
-        sidebarScript.onload = function() {
+        sidebarScript.onload = function handleSidebarScriptLoad() {
             console.log('Court Data Collector: Sidebar script loaded');
             // Wait a bit more for DOM elements to be ready
-            setTimeout(() => {
+            setTimeout(function initializeSidebarFunctionality() {
                 // Initialize sidebar functionality
                 if (window.CourtDataCollectorSidebar) {
                     console.log('Court Data Collector: Initializing sidebar functionality...');
@@ -243,12 +243,12 @@ function initializeSidebarEvents() {
                 }
             }, 200);
         };
-        sidebarScript.onerror = function(error) {
+        sidebarScript.onerror = function handleSidebarScriptError(error) {
             console.error('Court Data Collector: Failed to load sidebar script:', error);
         };
         document.head.appendChild(sidebarScript);
     };
-    loggerScript.onerror = function(error) {
+    loggerScript.onerror = function handleLoggerScriptError(error) {
         console.error('Court Data Collector: Failed to load logger script:', error);
     };
     document.head.appendChild(loggerScript);
@@ -281,7 +281,7 @@ function collectPageData() {
         tablesCount: tables.length
     });
     
-    tables.forEach(table => {
+    tables.forEach(function parseTable(table) {
         const thead = table.querySelector('thead');
         const tbody = table.querySelector('tbody');
         
@@ -299,13 +299,13 @@ function collectPageData() {
         const dataRows = tbody.querySelectorAll('tr');
         let validRowsCount = 0;
         
-        dataRows.forEach((row, index) => {
+        dataRows.forEach(function parseTableRow(row, index) {
             const cells = row.querySelectorAll('td');
             
             // Skip header-like rows or rows with insufficient data
             if (cells.length < 9) return;
             
-            const cellTexts = Array.from(cells).map(cell => {
+            const cellTexts = Array.from(cells).map(function getCellText(cell) {
                 const span = cell.querySelector('span');
                 return span ? span.textContent.trim() : cell.textContent.trim();
             });
@@ -379,7 +379,7 @@ function parseDebtAmount(amountStr) {
 }
 
 // Handle keyboard shortcuts
-document.addEventListener('keydown', function(event) {
+document.addEventListener('keydown', function handleKeyboardShortcuts(event) {
     // Ctrl+Shift+C to toggle sidebar
     if (event.ctrlKey && event.shiftKey && event.code === 'KeyC') {
         event.preventDefault();
@@ -388,7 +388,7 @@ document.addEventListener('keydown', function(event) {
 });
 
 // Clean up when page unloads
-window.addEventListener('beforeunload', function() {
+window.addEventListener('beforeunload', function cleanupOnUnload() {
     if (sidebarContainer && sidebarContainer.parentNode) {
         sidebarContainer.parentNode.removeChild(sidebarContainer);
     }
@@ -400,3 +400,5 @@ window.addEventListener('beforeunload', function() {
     
     document.body.classList.remove('cdc-sidebar-open');
 });
+
+} // Close the if (!window.courtDataCollectorInitialized) block

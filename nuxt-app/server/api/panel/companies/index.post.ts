@@ -1,5 +1,5 @@
 // API endpoint для создания новой компании
-import prisma from "../../../../lib/prisma";
+import prisma from "../../../utils/prisma";
 
 export default defineEventHandler(async (event) => {
   try {
@@ -18,6 +18,9 @@ export default defineEventHandler(async (event) => {
         data: {
           name: body.name,
           unp: body.unp || null,
+          notes: body.notes || null,
+          track: body.track || false,
+          aliases: body.aliases || null,
           contactPersons: {
             create: (body.contactPersons || []).map((cp: any) => ({
               name: cp.name,

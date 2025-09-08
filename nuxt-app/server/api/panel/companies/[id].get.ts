@@ -1,5 +1,5 @@
 // API endpoint для получения компании по ID
-import prisma from "../../../../lib/prisma";
+import prisma from "../../../utils/prisma";
 
 export default defineEventHandler(async (event) => {
   try {
