@@ -320,10 +320,10 @@ const recentActivities = ref({
 
 // Methods
 function formatCurrency(amount) {
-  if (typeof amount !== 'number') return '0 ₽'
+  if (typeof amount !== 'number') return '0 руб.'
   return new Intl.NumberFormat('ru-RU', {
     style: 'currency',
-    currency: 'RUB'
+    currency: 'BYN'
   }).format(amount)
 }
 

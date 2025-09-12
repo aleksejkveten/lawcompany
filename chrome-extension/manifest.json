@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Court Data Collector",
-  "version": "2.0.0",
-  "description": "Extension for collecting court data and managing contacts with right sidebar integration",
+  "version": "2.0.2",
+  "description": "Расширение для сбора данных судебных дел с улучшенным интерфейсом",
   "permissions": [
     "storage",
     "activeTab",
@@ -13,37 +13,42 @@
     "<all_urls>"
   ],
   "action": {
-    "default_title": "Court Data Collector",
+    "default_title": "Сбор данных приказных",
     "default_icon": {
-      "16": "assets/icons/icon16.svg",
-      "32": "assets/icons/icon32.svg",
-      "48": "assets/icons/icon48.svg",
-      "128": "assets/icons/icon128.svg"
+      "16": "assets/icons/icon16.png",
+      "32": "assets/icons/icon32.png",
+      "48": "assets/icons/icon48.png",
+      "128": "assets/icons/icon128.png"
     }
   },
   "content_scripts": [
     {
-      "matches": ["http://*/*", "https://*/*"],
+      "matches": ["<all_urls>"],
       "js": ["content.js"],
       "css": ["assets/styles/content.css"],
-      "run_at": "document_end"
+      "run_at": "document_end",
+      "all_frames": false
     }
   ],
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "background.js",
+    "type": "module"
   },
   "icons": {
-    "16": "assets/icons/icon16.svg",
-    "32": "assets/icons/icon32.svg",
-    "48": "assets/icons/icon48.svg",
-    "128": "assets/icons/icon128.svg"
+    "16": "assets/icons/icon16.png",
+    "32": "assets/icons/icon32.png",
+    "48": "assets/icons/icon48.png",
+    "128": "assets/icons/icon128.png"
   },
   "web_accessible_resources": [
     {
       "resources": [
-        "sidebar.html", 
-        "assets/styles/*",
-        "assets/scripts/*",
+        "sidebar.html",
+        "assets/styles/sidebar.css",
+        "assets/styles/content.css",
+        "assets/scripts/logger.js",
+        "assets/scripts/data-collector.js",
+        "assets/scripts/sidebar.js",
         "assets/icons/*"
       ],
       "matches": ["<all_urls>"]

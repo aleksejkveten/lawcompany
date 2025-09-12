@@ -125,7 +125,7 @@ async function processCourtCase(caseData: any) {
   const casePayload = {
     uuid: existingCase?.uuid || randomUUID(),
     registrationNumber: caseData.caseNumber || caseData.registrationNumber || '',
-    caseNumber: caseData.caseNumber || '',
+    caseNumber: caseData.caseNumber || caseData.registrationNumber || '',
     incomingNumber: caseData.incomingNumber,
     receiptDate: receiptDate,
     claimant: caseData.claimant,

@@ -1,5 +1,14 @@
 {
+  "name": "court-data-collector-utils",
+  "version": "1.0.0",
+  "description": "Utilities for Court Data Collector Chrome Extension",
+  "main": "convert-icons.js",
+  "scripts": {
+    "convert-icons": "node convert-icons.js"
+  },
   "dependencies": {
-
-  }
+    "canvas": "^2.11.2"
+  },
+  "author": "Court Data Collector Team",
+  "license": "MIT"
 }

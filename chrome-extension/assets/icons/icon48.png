@@ -1,3 +1,14 @@
-Court Data Collector - 48x48 Icon with Letter C
-Blue background (#1e40af) with white letter C and legal scale accent
-Generated from SVG: icon48.svg
+<!-- Court Data Collector - Letter C Icon 48x48 -->
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background with rounded corners -->
+  <rect width="48" height="48" rx="8" fill="#1e40af"/>
+  <!-- Letter C with proper proportions -->
+  <path d="M32 14c-1.5-1.5-3.5-2-6-2H20c-5.5 0-10 4.5-10 10v4c0 5.5 4.5 10 10 10h6c2.5 0 4.5-0.5 6-2l-2.8-2.8c-0.8 0.8-2 1.2-3.2 1.2H20c-3.3 0-6-2.7-6-6v-4c0-3.3 2.7-6 6-6h6c1.2 0 2.4 0.4 3.2 1.2L32 14z" fill="white"/>
+  <!-- Legal scale accent in corner -->
+  <circle cx="38" cy="38" r="6" fill="white" opacity="0.9"/>
+  <!-- Scale balance -->
+  <rect x="35" y="35" width="6" height="1.5" rx="0.75" fill="#1e40af"/>
+  <rect x="36.5" y="36.5" width="1" height="3" rx="0.5" fill="#1e40af"/>
+  <rect x="34" y="38.5" width="2" height="2" rx="1" fill="#1e40af"/>
+  <rect x="38" y="38.5" width="2" height="2" rx="1" fill="#1e40af"/>
+</svg>

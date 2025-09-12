@@ -1,4 +1,5 @@
-/* Court Data Collector Sidebar Styles - Namespaced to avoid conflicts */
+
+/* Court Data Collector Sidebar Styles - Modern Design */
 .cdc-sidebar-container * {
     margin: 0 !important;
     padding: 0 !important;
@@ -6,11 +7,26 @@
 }
 
 .cdc-sidebar-container {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif !important;
     font-size: 14px !important;
-    line-height: 1.4 !important;
-    color: #333 !important;
+    line-height: 1.5 !important;
+    color: #1f2937 !important;
     background: #ffffff !important;
+    --primary-color: #3b82f6;
+    --primary-dark: #1d4ed8;
+    --success-color: #10b981;
+    --warning-color: #f59e0b;
+    --error-color: #ef4444;
+    --gray-50: #f9fafb;
+    --gray-100: #f3f4f6;
+    --gray-200: #e5e7eb;
+    --gray-300: #d1d5db;
+    --gray-400: #9ca3af;
+    --gray-500: #6b7280;
+    --gray-600: #4b5563;
+    --gray-700: #374151;
+    --gray-800: #1f2937;
+    --gray-900: #111827;
 }
 
 .cdc-sidebar-root {
@@ -18,9 +34,10 @@
     height: 100vh !important;
     display: flex !important;
     flex-direction: column !important;
-    background: #ffffff !important;
-    border-left: 1px solid #e1e1e1 !important;
-    box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1) !important;
+    background: linear-gradient(to bottom, #ffffff 0%, #f9fafb 100%) !important;
+    border-left: 1px solid var(--gray-200) !important;
+    box-shadow: -4px 0 20px rgba(0, 0, 0, 0.1) !important;
+    backdrop-filter: blur(10px) !important;
 }
 
 /* Header */
@@ -28,123 +45,179 @@
     display: flex !important;
     justify-content: space-between !important;
     align-items: center !important;
-    padding: 16px !important;
-    background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%) !important;
+    padding: 20px !important;
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%) !important;
     color: white !important;
-    border-bottom: 1px solid #1d4ed8 !important;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3) !important;
+    position: relative !important;
+}
+
+.cdc-sidebar-header::before {
+    content: '' !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%) !important;
+    pointer-events: none !important;
 }
 
 .cdc-sidebar-header h1 {
-    font-size: 16px !important;
-    font-weight: 600 !important;
+    font-size: 18px !important;
+    font-weight: 700 !important;
     color: white !important;
     margin: 0 !important;
+    letter-spacing: -0.025em !important;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+    position: relative !important;
+    z-index: 1 !important;
 }
 
 .cdc-close-btn {
-    background: none !important;
-    border: none !important;
+    background: rgba(255, 255, 255, 0.1) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
     color: white !important;
-    font-size: 20px !important;
+    font-size: 18px !important;
     cursor: pointer !important;
-    padding: 4px 8px !important;
-    border-radius: 4px !important;
-    transition: background-color 0.2s !important;
+    padding: 8px 10px !important;
+    border-radius: 8px !important;
+    transition: all 0.2s ease !important;
+    backdrop-filter: blur(10px) !important;
+    position: relative !important;
+    z-index: 1 !important;
 }
 
 .cdc-close-btn:hover {
-    background: rgba(255, 255, 255, 0.1) !important;
+    background: rgba(255, 255, 255, 0.2) !important;
+    transform: scale(1.05) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
 }
 
 /* Menu */
 .cdc-sidebar-menu {
     display: flex !important;
-    background: #f8fafc !important;
-    border-bottom: 1px solid #e1e1e1 !important;
-    padding: 0 16px !important;
+    background: var(--gray-50) !important;
+    border-bottom: 1px solid var(--gray-200) !important;
+    padding: 0 !important;
+    position: relative !important;
 }
 
 .cdc-menu-btn {
     background: none !important;
     border: none !important;
-    padding: 12px 16px !important;
+    padding: 16px 20px !important;
     cursor: pointer !important;
     font-size: 13px !important;
-    font-weight: 500 !important;
-    color: #64748b !important;
-    border-bottom: 2px solid transparent !important;
-    transition: all 0.2s !important;
+    font-weight: 600 !important;
+    color: var(--gray-600) !important;
+    border-bottom: 3px solid transparent !important;
+    transition: all 0.3s ease !important;
     flex: 1 !important;
+    position: relative !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
 }
 
 .cdc-menu-btn:hover {
-    color: #1e40af !important;
-    background: rgba(30, 64, 175, 0.05) !important;
+    color: var(--primary-color) !important;
+    background: linear-gradient(to bottom, rgba(59, 130, 246, 0.05) 0%, rgba(59, 130, 246, 0.1) 100%) !important;
+    transform: translateY(-1px) !important;
 }
 
 .cdc-menu-btn.cdc-active {
-    color: #1e40af !important;
-    border-bottom-color: #1e40af !important;
-    background: rgba(30, 64, 175, 0.05) !important;
+    color: var(--primary-color) !important;
+    border-bottom-color: var(--primary-color) !important;
+    background: linear-gradient(to bottom, rgba(59, 130, 246, 0.1) 0%, rgba(59, 130, 246, 0.05) 100%) !important;
+    font-weight: 700 !important;
+}
+
+.cdc-menu-btn.cdc-active::after {
+    content: '' !important;
+    position: absolute !important;
+    bottom: -1px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    width: 20px !important;
+    height: 3px !important;
+    background: var(--primary-color) !important;
+    border-radius: 2px 2px 0 0 !important;
+    box-shadow: 0 -2px 4px rgba(59, 130, 246, 0.3) !important;
 }
 
 .cdc-settings-btn {
     flex: 0 0 auto !important;
-    min-width: 48px !important;
+    min-width: 56px !important;
+    font-size: 16px !important;
 }
 
 /* Content */
 .cdc-sidebar-content {
     flex: 1 !important;
     overflow-y: auto !important;
-    padding: 16px !important;
+    padding: 24px !important;
+    background: linear-gradient(to bottom, #ffffff 0%, var(--gray-50) 100%) !important;
 }
 
 .cdc-tab-content {
     display: none !important;
+    animation: fadeIn 0.3s ease-in-out !important;
 }
 
 .cdc-tab-content.cdc-active {
     display: block !important;
 }
 
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
 .cdc-tab-content h2 {
-    font-size: 18px !important;
-    font-weight: 600 !important;
-    margin-bottom: 16px !important;
-    color: #1e293b !important;
+    font-size: 22px !important;
+    font-weight: 700 !important;
+    margin-bottom: 20px !important;
+    color: var(--gray-800) !important;
+    letter-spacing: -0.025em !important;
 }
 
 /* Form Elements */
 .cdc-input-group {
-    margin-bottom: 16px !important;
+    margin-bottom: 20px !important;
 }
 
 .cdc-input-group label {
     display: block !important;
-    margin-bottom: 6px !important;
-    font-weight: 500 !important;
-    color: #374151 !important;
+    margin-bottom: 8px !important;
+    font-weight: 600 !important;
+    color: var(--gray-700) !important;
+    font-size: 13px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
 }
 
 .cdc-input-group input[type="text"],
-.cdc-input-group input[type="password"] {
+.cdc-input-group input[type="password"],
+.cdc-input-group select {
     width: 100% !important;
-    padding: 8px 12px !important;
-    border: 1px solid #d1d5db !important;
-    border-radius: 6px !important;
+    padding: 12px 16px !important;
+    border: 2px solid var(--gray-200) !important;
+    border-radius: 10px !important;
     font-size: 14px !important;
-    transition: border-color 0.2s !important;
+    transition: all 0.3s ease !important;
     font-family: inherit !important;
     background: white !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
 }
 
 .cdc-input-group input[type="text"]:focus,
-.cdc-input-group input[type="password"]:focus {
+.cdc-input-group input[type="password"]:focus,
+.cdc-input-group select:focus {
     outline: none !important;
-    border-color: #1e40af !important;
-    box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1) !important;
+    border-color: var(--primary-color) !important;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1), 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+    transform: translateY(-1px) !important;
 }
 
 /* API Key Container */
@@ -158,112 +231,175 @@
 }
 
 .cdc-api-key-container button {
-    padding: 8px 12px !important;
-    background: #f3f4f6 !important;
-    border: 1px solid #d1d5db !important;
-    border-radius: 6px !important;
+    padding: 12px 16px !important;
+    background: var(--gray-100) !important;
+    border: 2px solid var(--gray-200) !important;
+    border-radius: 10px !important;
     cursor: pointer !important;
-    transition: background-color 0.2s !important;
+    transition: all 0.3s ease !important;
+    font-size: 16px !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
 }
 
 .cdc-api-key-container button:hover {
-    background: #e5e7eb !important;
+    background: var(--gray-200) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
 }
 
 /* Buttons */
 .cdc-btn {
-    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%) !important;
     color: white !important;
     border: none !important;
-    padding: 12px 16px !important;
-    border-radius: 8px !important;
+    padding: 14px 20px !important;
+    border-radius: 12px !important;
     font-size: 14px !important;
-    font-weight: 500 !important;
+    font-weight: 600 !important;
     cursor: pointer !important;
-    transition: all 0.2s ease !important;
+    transition: all 0.3s ease !important;
     width: 100% !important;
-    margin-bottom: 8px !important;
+    margin-bottom: 12px !important;
     font-family: inherit !important;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3) !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    position: relative !important;
+    overflow: hidden !important;
+}
+
+.cdc-btn::before {
+    content: '' !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: -100% !important;
+    width: 100% !important;
+    height: 100% !important;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent) !important;
+    transition: left 0.5s ease !important;
+}
+
+.cdc-btn:hover::before {
+    left: 100% !important;
 }
 
 .cdc-btn:hover {
-    transform: translateY(-1px) !important;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15) !important;
-    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4) !important;
+    background: linear-gradient(135deg, var(--primary-dark) 0%, #1e3a8a 100%) !important;
 }
 
 .cdc-btn:active {
     transform: translateY(0) !important;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3) !important;
 }
 
 .cdc-btn:disabled,
 .cdc-btn.cdc-disabled {
     background: #9ca3af !important;
+    color: #1f2937 !important; /* Dark gray text on light gray background for better visibility */
     cursor: not-allowed !important;
+    transform: none !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
 }
 
 .cdc-btn-primary {
-    background: linear-gradient(135deg, #1e40af 0%, #1d4ed8 100%) !important;
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%) !important;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3) !important;
 }
 
 .cdc-btn-primary:hover {
-    background: linear-gradient(135deg, #1d4ed8 0%, #1e3a8a 100%) !important;
+    background: linear-gradient(135deg, var(--primary-dark) 0%, #1e3a8a 100%) !important;
+    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4) !important;
 }
 
 .cdc-btn-secondary {
-    background: #6b7280 !important;
+    background: linear-gradient(135deg, var(--gray-600) 0%, var(--gray-700) 100%) !important;
+    box-shadow: 0 4px 12px rgba(107, 114, 128, 0.3) !important;
 }
 
 .cdc-btn-secondary:hover {
-    background: #4b5563 !important;
+    background: linear-gradient(135deg, var(--gray-700) 0%, var(--gray-800) 100%) !important;
+}
+
+.cdc-btn-danger {
+    background: linear-gradient(135deg, var(--error-color) 0%, #dc2626 100%) !important;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3) !important;
+}
+
+.cdc-btn-danger:hover {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
+    box-shadow: 0 8px 25px rgba(239, 68, 68, 0.4) !important;
+}
+
+/* Add disabled state for danger buttons */
+.cdc-btn-danger:disabled,
+.cdc-btn-danger.cdc-disabled {
+    background: #9ca3af !important;
+    color: #1f2937 !important; /* Dark gray text on light gray background for better visibility */
+    cursor: not-allowed !important;
+    transform: none !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
 }
 
 /* Configuration Block */
 .cdc-config-block {
-    background: #f8fafc !important;
-    border: 1px solid #e2e8f0 !important;
-    border-radius: 8px !important;
-    margin-bottom: 16px !important;
+    background: white !important;
+    border: 2px solid var(--gray-200) !important;
+    border-radius: 16px !important;
+    margin-bottom: 24px !important;
     overflow: hidden !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05) !important;
+    transition: all 0.3s ease !important;
+}
+
+.cdc-config-block:hover {
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1) !important;
+    transform: translateY(-1px) !important;
 }
 
 .cdc-config-header {
     display: flex !important;
     justify-content: space-between !important;
     align-items: center !important;
-    padding: 12px 16px !important;
+    padding: 16px 20px !important;
     cursor: pointer !important;
-    background: #f1f5f9 !important;
-    border-bottom: 1px solid #e2e8f0 !important;
-    transition: background-color 0.2s !important;
+    background: linear-gradient(to right, var(--gray-50) 0%, white 100%) !important;
+    border-bottom: 1px solid var(--gray-200) !important;
+    transition: all 0.3s ease !important;
 }
 
 .cdc-config-header:hover {
-    background: #e2e8f0 !important;
+    background: linear-gradient(to right, var(--gray-100) 0%, var(--gray-50) 100%) !important;
 }
 
 .cdc-config-header h3 {
-    font-size: 14px !important;
+    font-size: 16px !important;
     font-weight: 600 !important;
-    color: #1e293b !important;
+    color: var(--gray-800) !important;
     margin: 0 !important;
+    letter-spacing: -0.025em !important;
 }
 
 .cdc-toggle-btn {
-    background: none !important;
-    border: none !important;
-    font-size: 14px !important;
-    color: #6b7280 !important;
+    background: var(--gray-100) !important;
+    border: 1px solid var(--gray-200) !important;
+    font-size: 12px !important;
+    color: var(--gray-600) !important;
     cursor: pointer !important;
-    transition: transform 0.3s ease !important;
-    padding: 4px !important;
-    border-radius: 4px !important;
+    transition: all 0.3s ease !important;
+    padding: 8px 10px !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    min-width: 32px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
 }
 
 .cdc-toggle-btn:hover {
-    background: rgba(0, 0, 0, 0.05) !important;
+    background: var(--gray-200) !important;
+    transform: scale(1.1) !important;
 }
 
 .cdc-config-header.cdc-collapsed .cdc-toggle-btn {
@@ -271,42 +407,49 @@
 }
 
 .cdc-config-content {
-    padding: 16px !important;
+    padding: 20px !important;
     background: white !important;
-    transition: all 0.3s ease !important;
+    transition: all 0.4s ease !important;
     max-height: 1000px !important;
     overflow: hidden !important;
 }
 
 .cdc-config-content.cdc-collapsed {
     max-height: 0 !important;
-    padding: 0 16px !important;
+    padding: 0 20px !important;
     opacity: 0 !important;
 }
 
 .cdc-config-tabs {
     display: flex !important;
-    margin-bottom: 16px !important;
+    margin-bottom: 20px !important;
+    background: var(--gray-50) !important;
+    border-radius: 10px !important;
+    padding: 4px !important;
 }
 
 .cdc-config-tab {
     background: none !important;
     border: none !important;
-    padding: 8px 16px !important;
+    padding: 12px 16px !important;
     cursor: pointer !important;
     font-size: 13px !important;
-    color: #6b7280 !important;
-    border-bottom: 2px solid transparent !important;
-    transition: all 0.2s !important;
+    color: var(--gray-600) !important;
+    transition: all 0.3s ease !important;
+    border-radius: 8px !important;
+    flex: 1 !important;
+    font-weight: 500 !important;
 }
 
 .cdc-config-tab.cdc-active {
-    color: #1e40af !important;
-    border-bottom-color: #1e40af !important;
+    color: var(--primary-color) !important;
+    background: white !important;
+    font-weight: 600 !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
 }
 
 .cdc-config-tab.cdc-disabled {
-    color: #9ca3af !important;
+    color: var(--gray-400) !important;
     cursor: not-allowed !important;
 }
 
@@ -317,77 +460,83 @@
     gap: 8px !important;
     max-height: 200px !important;
     overflow-y: auto !important;
-    padding: 8px !important;
-    background: #f9fafb !important;
-    border: 1px solid #e5e7eb !important;
-    border-radius: 6px !important;
+    padding: 12px !important;
+    background: var(--gray-50) !important;
+    border: 2px solid var(--gray-200) !important;
+    border-radius: 10px !important;
 }
 
 .cdc-checkbox-item {
     display: flex !important;
     align-items: center !important;
-    gap: 8px !important;
-    padding: 6px 8px !important;
-    border-radius: 4px !important;
-    transition: background-color 0.2s !important;
+    gap: 12px !important;
+    padding: 10px 12px !important;
+    border-radius: 8px !important;
+    transition: all 0.2s ease !important;
+    cursor: pointer !important;
 }
 
 .cdc-checkbox-item:hover {
-    background: #f3f4f6 !important;
+    background: white !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
 }
 
 .cdc-checkbox-item input[type="checkbox"] {
     margin: 0 !important;
-    accent-color: #1e40af !important;
+    accent-color: var(--primary-color) !important;
+    width: 16px !important;
+    height: 16px !important;
+    cursor: pointer !important;
 }
 
 .cdc-checkbox-item label {
     margin: 0 !important;
     font-size: 13px !important;
-    color: #374151 !important;
+    color: var(--gray-700) !important;
     cursor: pointer !important;
     flex: 1 !important;
-}
-
-/* Radio buttons */
-.cdc-sidebar-content input[type="radio"] {
-    margin-right: 8px !important;
+    font-weight: 500 !important;
 }
 
 /* Development Notice */
 .cdc-development-notice {
-    background: #fef3c7 !important;
-    border: 1px solid #f59e0b !important;
-    border-radius: 6px !important;
-    padding: 12px !important;
-    margin-top: 16px !important;
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%) !important;
+    border: 2px solid var(--warning-color) !important;
+    border-radius: 12px !important;
+    padding: 16px !important;
+    margin-top: 20px !important;
     text-align: center !important;
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2) !important;
 }
 
 .cdc-development-notice p {
     color: #92400e !important;
-    font-weight: 500 !important;
+    font-weight: 600 !important;
     margin: 0 !important;
+    font-size: 13px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
 }
 
 /* Loading Indicator */
 .cdc-loading-indicator {
-    display: flex !important;
+    display: none !important;
     flex-direction: column !important;
     align-items: center !important;
-    gap: 12px !important;
-    padding: 20px !important;
-    background: #f0f9ff !important;
-    border: 1px solid #bae6fd !important;
-    border-radius: 8px !important;
-    margin: 16px 0 !important;
+    gap: 16px !important;
+    padding: 24px !important;
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%) !important;
+    border: 2px solid #0ea5e9 !important;
+    border-radius: 16px !important;
+    margin: 20px 0 !important;
+    box-shadow: 0 4px 12px rgba(14, 165, 233, 0.2) !important;
 }
 
 .cdc-spinner {
-    width: 24px !important;
-    height: 24px !important;
-    border: 3px solid #e2e8f0 !important;
-    border-top: 3px solid #1e40af !important;
+    width: 32px !important;
+    height: 32px !important;
+    border: 4px solid var(--gray-200) !important;
+    border-top: 4px solid var(--primary-color) !important;
     border-radius: 50% !important;
     animation: cdc-spin 1s linear infinite !important;
 }
@@ -399,107 +548,138 @@
 
 /* Status Message */
 .cdc-status-message {
-    padding: 12px !important;
-    border-radius: 6px !important;
-    margin: 16px 0 !important;
-    font-weight: 500 !important;
+    padding: 16px 20px !important;
+    border-radius: 12px !important;
+    margin: 20px 0 !important;
+    font-weight: 600 !important;
     text-align: center !important;
     display: none !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+    border: 2px solid transparent !important;
 }
 
 .cdc-status-message.cdc-success {
-    background: #dcfce7 !important;
+    background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%) !important;
     color: #166534 !important;
-    border: 1px solid #bbf7d0 !important;
+    border-color: var(--success-color) !important;
     display: block !important;
 }
 
 .cdc-status-message.cdc-error {
-    background: #fee2e2 !important;
+    background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%) !important;
     color: #dc2626 !important;
-    border: 1px solid #fecaca !important;
+    border-color: var(--error-color) !important;
+    display: block !important;
+}
+
+.cdc-status-message.cdc-info {
+    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%) !important;
+    color: #1d4ed8 !important;
+    border-color: var(--primary-color) !important;
+    display: block !important;
+}
+
+.cdc-status-message.cdc-warning {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%) !important;
+    color: #92400e !important;
+    border-color: var(--warning-color) !important;
     display: block !important;
 }
 
 /* Data Results */
 .cdc-data-results {
-    margin-top: 16px !important;
+    margin-top: 20px !important;
 }
 
 .cdc-data-item {
-    background: #f9fafb !important;
-    border: 1px solid #e5e7eb !important;
-    border-radius: 6px !important;
-    padding: 12px !important;
-    margin-bottom: 8px !important;
+    background: white !important;
+    border: 2px solid var(--gray-200) !important;
+    border-radius: 12px !important;
+    padding: 16px !important;
+    margin-bottom: 12px !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05) !important;
+}
+
+.cdc-data-item:hover {
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1) !important;
+    transform: translateY(-2px) !important;
 }
 
 .cdc-data-item h4 {
     font-size: 14px !important;
     font-weight: 600 !important;
-    margin-bottom: 4px !important;
-    color: #1f2937 !important;
+    margin-bottom: 8px !important;
+    color: var(--gray-800) !important;
 }
 
 .cdc-data-item p {
     font-size: 13px !important;
-    color: #6b7280 !important;
-    margin: 2px 0 !important;
+    color: var(--gray-600) !important;
+    margin: 4px 0 !important;
+    line-height: 1.4 !important;
 }
 
 /* Action Section */
 .cdc-action-section {
-    margin-top: 16px !important;
+    margin-top: 24px !important;
 }
 
-.cdc-auto-controls {
-    margin-top: 8px !important;
-}
-
-/* Scrollbar */
+/* Scrollbar Styling */
 .cdc-sidebar-content::-webkit-scrollbar {
-    width: 6px !important;
+    width: 8px !important;
 }
 
 .cdc-sidebar-content::-webkit-scrollbar-track {
-    background: #f1f5f9 !important;
+    background: var(--gray-100) !important;
+    border-radius: 4px !important;
 }
 
 .cdc-sidebar-content::-webkit-scrollbar-thumb {
-    background: #cbd5e1 !important;
-    border-radius: 3px !important;
+    background: linear-gradient(to bottom, var(--gray-300), var(--gray-400)) !important;
+    border-radius: 4px !important;
+    transition: background 0.3s ease !important;
 }
 
 .cdc-sidebar-content::-webkit-scrollbar-thumb:hover {
-    background: #94a3b8 !important;
+    background: linear-gradient(to bottom, var(--gray-400), var(--gray-500)) !important;
 }
 
 /* Logs Interface Styles */
 .cdc-log-controls {
     display: flex !important;
     flex-direction: column !important;
-    gap: 12px !important;
-    margin-bottom: 16px !important;
-    padding: 12px !important;
-    background: #f8fafc !important;
-    border-radius: 8px !important;
-    border: 1px solid #e2e8f0 !important;
+    gap: 16px !important;
+    margin-bottom: 20px !important;
+    padding: 16px !important;
+    background: white !important;
+    border-radius: 12px !important;
+    border: 2px solid var(--gray-200) !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05) !important;
 }
 
 .cdc-log-filters {
     display: flex !important;
-    gap: 8px !important;
+    gap: 12px !important;
     flex-wrap: wrap !important;
 }
 
 .cdc-log-filters select,
 .cdc-log-filters input {
-    padding: 6px 10px !important;
-    border: 1px solid #d1d5db !important;
-    border-radius: 4px !important;
+    padding: 8px 12px !important;
+    border: 2px solid var(--gray-200) !important;
+    border-radius: 8px !important;
     font-size: 12px !important;
     background: white !important;
     font-family: inherit !important;
+    transition: all 0.3s ease !important;
+}
+
+.cdc-log-filters select:focus,
+.cdc-log-filters input:focus {
+    outline: none !important;
+    border-color: var(--primary-color) !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
 }
 
 .cdc-log-filters select {
@@ -514,198 +694,322 @@
 .cdc-log-actions {
     display: flex !important;
     gap: 8px !important;
+    flex-wrap: wrap !important;
 }
 
 .cdc-btn-small {
-    padding: 6px 12px !important;
+    padding: 8px 16px !important;
     font-size: 12px !important;
     width: auto !important;
     margin-bottom: 0 !important;
+    text-transform: none !important;
+    letter-spacing: normal !important;
+}
+
+/* Add disabled state for small buttons */
+.cdc-btn-small:disabled,
+.cdc-btn-small.cdc-disabled {
+    background: #9ca3af !important;
+    color: #1f2937 !important; /* Dark gray text on light gray background for better visibility */
+    cursor: not-allowed !important;
+    transform: none !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
 }
 
 .cdc-btn-danger {
-    background: #dc2626 !important;
+    background: linear-gradient(135deg, var(--error-color) 0%, #dc2626 100%) !important;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3) !important;
 }
 
 .cdc-btn-danger:hover {
-    background: #b91c1c !important;
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
+    box-shadow: 0 8px 25px rgba(239, 68, 68, 0.4) !important;
 }
 
 .cdc-log-stats {
-    margin-bottom: 16px !important;
+    margin-bottom: 20px !important;
 }
 
 .cdc-stats-grid {
     display: grid !important;
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)) !important;
-    gap: 8px !important;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)) !important;
+    gap: 12px !important;
 }
 
 .cdc-stat-item {
     display: flex !important;
     justify-content: space-between !important;
     align-items: center !important;
-    padding: 8px 12px !important;
-    background: #f1f5f9 !important;
-    border-radius: 6px !important;
-    border-left: 3px solid #64748b !important;
+    padding: 12px 16px !important;
+    background: white !important;
+    border-radius: 10px !important;
+    border-left: 4px solid var(--gray-400) !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05) !important;
+    transition: all 0.3s ease !important;
+}
+
+.cdc-stat-item:hover {
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
 }
 
 .cdc-stat-item.cdc-error {
-    border-left-color: #dc2626 !important;
-    background: #fef2f2 !important;
+    border-left-color: var(--error-color) !important;
+    background: linear-gradient(135deg, #fef2f2 0%, white 100%) !important;
 }
 
 .cdc-stat-item.cdc-warn {
-    border-left-color: #f59e0b !important;
-    background: #fffbeb !important;
+    border-left-color: var(--warning-color) !important;
+    background: linear-gradient(135deg, #fffbeb 0%, white 100%) !important;
 }
 
 .cdc-stat-item.cdc-info {
-    border-left-color: #3b82f6 !important;
-    background: #eff6ff !important;
+    border-left-color: var(--primary-color) !important;
+    background: linear-gradient(135deg, #eff6ff 0%, white 100%) !important;
 }
 
 .cdc-stat-label {
     font-size: 12px !important;
-    color: #64748b !important;
-    font-weight: 500 !important;
+    color: var(--gray-600) !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
 }
 
 .cdc-stat-value {
-    font-size: 14px !important;
-    font-weight: 600 !important;
-    color: #1e293b !important;
+    font-size: 16px !important;
+    font-weight: 700 !important;
+    color: var(--gray-800) !important;
 }
 
 .cdc-log-entries {
     max-height: 400px !important;
     overflow-y: auto !important;
-    border: 1px solid #e2e8f0 !important;
-    border-radius: 8px !important;
+    border: 2px solid var(--gray-200) !important;
+    border-radius: 12px !important;
     background: white !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05) !important;
 }
 
 .cdc-log-entry {
-    padding: 12px !important;
-    border-bottom: 1px solid #f1f5f9 !important;
+    padding: 16px !important;
+    border-bottom: 1px solid var(--gray-100) !important;
     font-size: 12px !important;
+    transition: all 0.2s ease !important;
 }
 
 .cdc-log-entry:last-child {
     border-bottom: none !important;
 }
 
+.cdc-log-entry:hover {
+    background: var(--gray-50) !important;
+}
+
 .cdc-log-entry.cdc-error {
-    background: #fef2f2 !important;
-    border-left: 3px solid #dc2626 !important;
+    background: linear-gradient(135deg, #fef2f2 0%, white 100%) !important;
+    border-left: 4px solid var(--error-color) !important;
 }
 
 .cdc-log-entry.cdc-warn {
-    background: #fffbeb !important;
-    border-left: 3px solid #f59e0b !important;
+    background: linear-gradient(135deg, #fffbeb 0%, white 100%) !important;
+    border-left: 4px solid var(--warning-color) !important;
 }
 
 .cdc-log-entry.cdc-info {
-    background: #eff6ff !important;
-    border-left: 3px solid #3b82f6 !important;
+    background: linear-gradient(135deg, #eff6ff 0%, white 100%) !important;
+    border-left: 4px solid var(--primary-color) !important;
 }
 
 .cdc-log-entry.cdc-debug {
-    background: #f8fafc !important;
-    border-left: 3px solid #64748b !important;
+    background: linear-gradient(135deg, var(--gray-50) 0%, white 100%) !important;
+    border-left: 4px solid var(--gray-400) !important;
 }
 
 .cdc-log-header {
     display: flex !important;
-    gap: 8px !important;
+    gap: 12px !important;
     align-items: center !important;
-    margin-bottom: 6px !important;
+    margin-bottom: 8px !important;
 }
 
 .cdc-log-level {
-    font-weight: 600 !important;
-    padding: 2px 6px !important;
-    border-radius: 4px !important;
+    font-weight: 700 !important;
+    padding: 4px 8px !important;
+    border-radius: 6px !important;
     font-size: 10px !important;
     text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    min-width: 60px !important;
+    text-align: center !important;
 }
 
 .cdc-log-entry.cdc-error .cdc-log-level {
-    background: #dc2626 !important;
+    background: var(--error-color) !important;
     color: white !important;
 }
 
 .cdc-log-entry.cdc-warn .cdc-log-level {
-    background: #f59e0b !important;
+    background: var(--warning-color) !important;
     color: white !important;
 }
 
 .cdc-log-entry.cdc-info .cdc-log-level {
-    background: #3b82f6 !important;
+    background: var(--primary-color) !important;
     color: white !important;
 }
 
 .cdc-log-entry.cdc-debug .cdc-log-level {
-    background: #64748b !important;
+    background: var(--gray-500) !important;
     color: white !important;
 }
 
 .cdc-log-category {
-    font-weight: 500 !important;
-    color: #64748b !important;
+    font-weight: 600 !important;
+    color: var(--gray-600) !important;
     font-size: 11px !important;
+    background: var(--gray-100) !important;
+    padding: 2px 6px !important;
+    border-radius: 4px !important;
 }
 
 .cdc-log-timestamp {
     margin-left: auto !important;
-    color: #9ca3af !important;
+    color: var(--gray-500) !important;
     font-size: 10px !important;
+    font-weight: 500 !important;
 }
 
 .cdc-log-message {
-    color: #1e293b !important;
+    color: var(--gray-800) !important;
     font-weight: 500 !important;
-    margin-bottom: 4px !important;
-    line-height: 1.4 !important;
+    margin-bottom: 6px !important;
+    line-height: 1.5 !important;
 }
 
 .cdc-log-context {
-    background: #f8fafc !important;
-    border-radius: 4px !important;
-    padding: 8px !important;
-    margin-top: 6px !important;
+    background: var(--gray-50) !important;
+    border-radius: 8px !important;
+    padding: 12px !important;
+    margin-top: 8px !important;
+    border: 1px solid var(--gray-200) !important;
 }
 
 .cdc-log-context pre {
     font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace !important;
     font-size: 10px !important;
-    color: #374151 !important;
+    color: var(--gray-700) !important;
     margin: 0 !important;
     white-space: pre-wrap !important;
     word-break: break-word !important;
+    line-height: 1.4 !important;
 }
 
 .cdc-no-logs {
     text-align: center !important;
-    color: #9ca3af !important;
+    color: var(--gray-500) !important;
     padding: 40px 20px !important;
     font-style: italic !important;
+    font-size: 14px !important;
 }
 
 .cdc-log-entries::-webkit-scrollbar {
-    width: 4px !important;
+    width: 6px !important;
 }
 
 .cdc-log-entries::-webkit-scrollbar-track {
-    background: #f1f5f9 !important;
+    background: var(--gray-100) !important;
+    border-radius: 3px !important;
 }
 
 .cdc-log-entries::-webkit-scrollbar-thumb {
-    background: #cbd5e1 !important;
-    border-radius: 2px !important;
+    background: linear-gradient(to bottom, var(--gray-300), var(--gray-400)) !important;
+    border-radius: 3px !important;
 }
 
 .cdc-log-entries::-webkit-scrollbar-thumb:hover {
-    background: #94a3b8 !important;
+    background: linear-gradient(to bottom, var(--gray-400), var(--gray-500)) !important;
+}
+
+/* Responsive Design */
+@media (max-width: 450px) {
+    .cdc-sidebar-content {
+        padding: 16px !important;
+    }
+    
+    .cdc-sidebar-header {
+        padding: 16px !important;
+    }
+    
+    .cdc-sidebar-header h1 {
+        font-size: 16px !important;
+    }
+    
+    .cdc-menu-btn {
+        padding: 12px 16px !important;
+        font-size: 12px !important;
+    }
+}
+
+/* Dark mode support (if needed) */
+@media (prefers-color-scheme: dark) {
+    .cdc-sidebar-container {
+        --gray-50: #1f2937;
+        --gray-100: #374151;
+        --gray-200: #4b5563;
+        --gray-300: #6b7280;
+        --gray-400: #9ca3af;
+        --gray-500: #d1d5db;
+        --gray-600: #e5e7eb;
+        --gray-700: #f3f4f6;
+        --gray-800: #f9fafb;
+        --gray-900: #ffffff;
+    }
+    
+    .cdc-sidebar-root {
+        background: linear-gradient(to bottom, #1f2937 0%, #111827 100%) !important;
+        color: #f9fafb !important;
+    }
+    
+    .cdc-sidebar-content {
+        background: linear-gradient(to bottom, #1f2937 0%, #111827 100%) !important;
+    }
+}
+
+/* Animation improvements */
+@keyframes slideDown {
+    from {
+        max-height: 0;
+        opacity: 0;
+    }
+    to {
+        max-height: 1000px;
+        opacity: 1;
+    }
+}
+
+/* Accessibility improvements */
+.cdc-btn:focus-visible,
+.cdc-menu-btn:focus-visible,
+.cdc-toggle-btn:focus-visible,
+.cdc-config-tab:focus-visible {
+    outline: 2px solid var(--primary-color) !important;
+    outline-offset: 2px !important;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .cdc-sidebar-container {
+        --primary-color: #0000ff;
+        --primary-dark: #000080;
+        --success-color: #008000;
+        --warning-color: #ff8c00;
+        --error-color: #ff0000;
+    }
+    
+    .cdc-btn,
+    .cdc-menu-btn,
+    .cdc-config-tab {
+        border: 2px solid currentColor !important;
+    }
 }

@@ -82,7 +82,6 @@ model CourtCase {
   debtor           String   // Должник
   debtorCompany    Company? @relation("DebtorCompany", fields: [debtorCompanyId], references: [id])
   debtorCompanyId  Int?
-  registrationNumber String // Номер регистрации
   caseNumber       String?   // № дела
   incomingNumber   String   // Вх. №
   receiptDate      DateTime? // Дата поступления

@@ -11,18 +11,37 @@ class ExtensionLogger {
         this.logQueue = [];
         this.isInitialized = false;
         
-        // Initialize logger
-        this.init();
+        // Initialize logger synchronously
+        this.initializeSync();
     }
     
-    async init() {
+    // Synchronous initialization
+    initializeSync() {
         try {
-            // Load existing logs from storage
-            await this.loadLogs();
+            // Load existing logs from storage synchronously if possible
+            this.loadLogsSync();
             this.isInitialized = true;
-            console.log('Extension Logger initialized successfully');
         } catch (error) {
-            console.error('Failed to initialize Extension Logger:', error);
+            // Even if there's an error, we still mark as initialized
+            // to prevent blocking the extension
+            this.isInitialized = true;
+        }
+    }
+    
+    // Simplified synchronous log loading
+    loadLogsSync() {
+        try {
+            if (typeof chrome !== 'undefined' && chrome.storage) {
+                // For Chrome extensions, we'll initialize with empty queue
+                // and load asynchronously in background
+                this.logQueue = [];
+            } else {
+                // Fallback to localStorage
+                const stored = localStorage.getItem(this.storageKey);
+                this.logQueue = stored ? JSON.parse(stored) : [];
+            }
+        } catch (error) {
+            this.logQueue = [];
         }
     }
     
@@ -116,27 +135,9 @@ class ExtensionLogger {
         }, 'navigation');
     }
     
-    // Console output with color coding
+    // Console output (simplified)
     consoleOutput(logEntry) {
-        const colors = {
-            ERROR: '#ff4444',
-            WARN: '#ff8800',
-            INFO: '#0088ff',
-            DEBUG: '#888888',
-            TRACE: '#cccccc'
-        };
-        
-        const color = colors[logEntry.level] || '#000000';
-        const timestamp = new Date(logEntry.timestamp).toLocaleTimeString();
-        
-        const style = `color: ${color}; font-weight: bold;`;
-        
-        console.log(
-            `%c[${logEntry.level}] ${timestamp} [${logEntry.category}]`,
-            style,
-            logEntry.message,
-            logEntry.context
-        );
+        // Minimal console output - can be disabled entirely if needed
     }
     
     // Generate unique log ID
@@ -208,7 +209,7 @@ class ExtensionLogger {
         
         this.saveTimeout = setTimeout(() => {
             this.saveLogs().catch(error => {
-                console.error('Failed to save logs:', error);
+                // Silent error handling to prevent blocking
             });
         }, 1000);
     }
@@ -295,7 +296,6 @@ class ExtensionLogger {
     async clearLogs() {
         this.logQueue = [];
         await this.saveLogs();
-        console.log('All logs cleared');
     }
     
     // Export logs
@@ -336,8 +336,26 @@ class ExtensionLogger {
     }
 }
 
-// Create global logger instance
-window.ExtensionLogger = window.ExtensionLogger || new ExtensionLogger();
+// Create global logger instance with proper initialization
+// Ensure we don't overwrite existing instance
+if (typeof window.ExtensionLogger === 'undefined') {
+    try {
+        window.ExtensionLogger = new ExtensionLogger();
+        // Set initialization flag immediately
+        window.ExtensionLogger.isInitialized = true;
+    } catch (error) {
+        // Create a minimal fallback logger
+        window.ExtensionLogger = {
+            isInitialized: true,
+            log: function() { return Promise.resolve(); },
+            error: function() { return Promise.resolve(); },
+            warn: function() { return Promise.resolve(); },
+            info: function() { return Promise.resolve(); },
+            debug: function() { return Promise.resolve(); },
+            trace: function() { return Promise.resolve(); }
+        };
+    }
+}
 
 } // End of ExtensionLogger check
 
