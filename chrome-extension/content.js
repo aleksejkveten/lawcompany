@@ -1,123 +1,148 @@
-// Content script for Chrome extension - Right sidebar injection
+// Content script for Chrome extension - Simplified communication layer
 
-// Global variables - Fixed declaration with safety check
-if (typeof sidebarInjected === 'undefined') {
-    var sidebarInjected = false;
-}
-if (typeof sidebarContainer === 'undefined') {
-    var sidebarContainer = null;
-}
-if (typeof sidebarVisible === 'undefined') {
-    var sidebarVisible = false;
-}
+// Global variables
+var sidebarInjected = false;
+var sidebarContainer = null;
+var sidebarVisible = false;
 
-// Prevent multiple initialization with a global flag
+// Prevent multiple initialization
 if (window.courtDataCollectorInitialized) {
-    // But still listen for messages
-    if (!window.courtDataCollectorMessageListener) {
-        chrome.runtime.onMessage.addListener(function handleExtensionMessage(request, sender, sendResponse) {
-            if (request.action === 'toggleSidebar') {
-                toggleSidebar();
-                sendResponse({ success: true, visible: sidebarVisible });
-            } else if (request.action === 'collectData') {
-                // Send message to background script for data collection
-                chrome.runtime.sendMessage({action: 'collectDataFromPage'}, function(response) {
-                    sendResponse(response);
-                });
-                return true; // Keep message channel open
-            } else if (request.action === 'ping') {
-                sendResponse({ success: true, message: 'pong' });
-            }
-        });
-        window.courtDataCollectorMessageListener = true;
-    }
+    // Already initialized, just listen for messages
+    setupMessageListener();
 } else {
     window.courtDataCollectorInitialized = true;
-    
-    try {
-        // Initialize extension when DOM is ready
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initializeExtension);
-        } else {
-            initializeExtension();
-        }
-    } catch (error) {
-        // Silent error handling to prevent blocking
-        window.contentScriptError = error.message;
-        window.contentScriptExecuted = false;
-    }
-    
-    // Set execution marker
-    window.contentScriptExecuted = true;
+    setupMessageListener();
 }
 
-function initializeExtension() {
-    // Listen for extension icon click
+function setupMessageListener() {
     chrome.runtime.onMessage.addListener(function handleExtensionMessage(request, sender, sendResponse) {
+
         if (request.action === 'toggleSidebar') {
+            // Initialize sidebar only when user activates the extension
+            if (!sidebarInjected) {
+                initializeSidebar();
+            }
             toggleSidebar();
             sendResponse({ success: true, visible: sidebarVisible });
-        } else if (request.action === 'collectData') {
-            // Send message to background script for data collection
-            chrome.runtime.sendMessage({action: 'collectDataFromPage'}, function(response) {
-                sendResponse(response);
-            });
+        } else if (request.action === 'executeDataCollection') {
+            // Execute data collection - data collector should already be injected by background script
+            try {
+                if (window.CourtDataCollector && typeof window.CourtDataCollector.collectCourtData === 'function') {
+                    const data = window.CourtDataCollector.collectCourtData();
+                    sendResponse({ success: true, data: data });
+                } else {
+                    console.error('Data collector not available');
+                    sendResponse({ success: false, error: 'Data collector not available' });
+                }
+            } catch (error) {
+                console.error('Error during data collection:', error);
+                sendResponse({ success: false, error: error.message });
+            }
             return true; // Keep message channel open
         } else if (request.action === 'ping') {
             sendResponse({ success: true, message: 'pong' });
         }
+
+        return true; // Indicate async response
     });
-    
-    // Inject sidebar on first load (hidden)
-    injectSidebar();
 }
 
-function injectSidebar() {
-    if (sidebarInjected) {
-        return;
-    }
-    
+function initializeSidebar() {
+
     // Create sidebar container
     sidebarContainer = document.createElement('div');
     sidebarContainer.id = 'court-data-collector-sidebar';
     sidebarContainer.className = 'cdc-sidebar-container';
-    
+
     // Load sidebar HTML
     const sidebarURL = chrome.runtime.getURL('sidebar.html');
-    
     fetch(sidebarURL)
-        .then(function handleSidebarHTMLResponse(response) { 
-            return response.text(); 
-        })
-        .then(function handleSidebarHTMLContent(html) {
-            // Remove the CSS and JS links from the HTML since we'll load them separately
+        .then(response => response.text())
+        .then(html => {
+            // Remove script and link tags - they'll be injected separately
             html = html.replace(/<link[^>]*href="assets\/styles\/sidebar\.css"[^>]*>/g, '');
             html = html.replace(/<script[^>]*src="assets\/scripts\/sidebar\.js"[^>]*><\/script>/g, '');
-            
+
             sidebarContainer.innerHTML = html;
-            
-            // Inject sidebar CSS
-            const sidebarCSSURL = chrome.runtime.getURL('assets/styles/sidebar.css');
+
+            // Inject CSS
             const cssLink = document.createElement('link');
             cssLink.rel = 'stylesheet';
-            cssLink.href = sidebarCSSURL;
+            cssLink.href = chrome.runtime.getURL('assets/styles/sidebar.css');
             document.head.appendChild(cssLink);
-            
-            // Adjust body layout to accommodate sidebar
+
+            // Inject scripts in correct order
+            injectSidebarScripts();
+
+            // Adjust page layout
             adjustPageLayout();
-            
-            // Append sidebar to body
+
+            // Append to body
             document.body.appendChild(sidebarContainer);
-            
-            // Initialize sidebar functionality with proper script loading sequence
-            initializeSidebarEvents();
-            
             sidebarInjected = true;
+
+            // Add close button event listener
+            const closeBtn = sidebarContainer.querySelector('#closeSidebar');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', toggleSidebar);
+            }
+
         })
-        .catch(function handleSidebarLoadError(error) {
-            // Silent error handling to prevent blocking
+        .catch(error => {
+            console.error('Failed to load sidebar HTML:', error);
         });
 }
+
+function injectSidebarScripts() {
+    // Inject logger first
+    const loggerScript = document.createElement('script');
+    loggerScript.src = chrome.runtime.getURL('assets/scripts/logger.js');
+    loggerScript.onload = function() {
+
+        // Then inject data collector
+        const dataCollectorScript = document.createElement('script');
+        dataCollectorScript.src = chrome.runtime.getURL('assets/scripts/data-collector.js');
+        dataCollectorScript.onload = function() {
+
+            // Finally inject sidebar script
+            const sidebarScript = document.createElement('script');
+            sidebarScript.src = chrome.runtime.getURL('assets/scripts/sidebar.js');
+            sidebarScript.onload = function() {
+                // Initialize sidebar functionality after all scripts are loaded
+                initializeSidebarWithRetry();
+            };
+            sidebarScript.onerror = function() {
+                console.error('Failed to load sidebar script');
+            };
+            document.head.appendChild(sidebarScript);
+        };
+        dataCollectorScript.onerror = function() {
+            console.error('Failed to load data collector script');
+        };
+        document.head.appendChild(dataCollectorScript);
+    };
+    loggerScript.onerror = function() {
+        console.error('Failed to load logger script');
+    };
+    document.head.appendChild(loggerScript);
+}
+
+function initializeSidebarWithRetry(attempts = 0, maxAttempts = 10) {
+    if (window.CourtDataCollectorSidebar && typeof window.CourtDataCollectorSidebar.init === 'function') {
+        try {
+            window.CourtDataCollectorSidebar.init();
+        } catch (error) {
+            console.error('Error initializing sidebar:', error);
+        }
+    } else if (attempts < maxAttempts) {
+        // Wait a bit and try again
+        setTimeout(() => {
+            initializeSidebarWithRetry(attempts + 1, maxAttempts);
+        }, 200);
+    }
+}
+
+
 
 function adjustPageLayout() {
     // Prevent page content from being hidden behind sidebar
@@ -136,28 +161,28 @@ function adjustPageLayout() {
             box-shadow: -8px 0 32px rgba(0, 0, 0, 0.12) !important;
             backdrop-filter: blur(20px) !important;
         }
-        
+
         .cdc-sidebar-container.visible {
             right: 0 !important;
         }
-        
+
         body.cdc-sidebar-open {
             margin-right: 420px !important;
             transition: margin-right 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
         }
-        
+
         @media (max-width: 768px) {
             .cdc-sidebar-container {
                 width: 100vw !important;
                 right: -100vw !important;
             }
-            
+
             body.cdc-sidebar-open {
                 margin-right: 0 !important;
                 overflow: hidden !important;
             }
         }
-        
+
         /* Override any conflicting styles */
         .cdc-sidebar-container * {
             box-sizing: border-box !important;
@@ -170,9 +195,9 @@ function toggleSidebar() {
     if (!sidebarContainer) {
         return;
     }
-    
+
     sidebarVisible = !sidebarVisible;
-    
+
     if (sidebarVisible) {
         sidebarContainer.classList.add('visible');
         document.body.classList.add('cdc-sidebar-open');
@@ -182,250 +207,6 @@ function toggleSidebar() {
     }
 }
 
-async function initializeSidebarEvents() {
-    const closeSidebarBtn = sidebarContainer.querySelector('#closeSidebar');
-    if (closeSidebarBtn) {
-        closeSidebarBtn.addEventListener('click', toggleSidebar);
-    }
-    
-    // Load scripts in sequence using await for proper ordering
-    try {
-        // Load logger script first
-        await loadLoggerScript();
-        
-        // Load data collector script
-        await loadDataCollectorScript();
-        
-        // Load sidebar script last
-        await loadSidebarScript();
-        
-        // Add a small delay to ensure DOM is ready
-        await new Promise(resolve => setTimeout(resolve, 100));
-        
-        // Initialize sidebar functionality
-        initializeSidebarFunctionality();
-    } catch (error) {
-        // Even if there's an error, try to initialize functionality
-        initializeSidebarFunctionality();
-    }
-}
-
-function loadLoggerScript() {
-    return new Promise((resolve, reject) => {
-        // Check if already loaded with more robust checking
-        if (window.ExtensionLogger && window.ExtensionLogger.isInitialized) {
-            resolve();
-            return;
-        }
-        
-        // Create script element
-        const script = document.createElement('script');
-        script.src = chrome.runtime.getURL('assets/scripts/logger.js');
-        script.id = 'court-data-collector-logger-script';
-        
-        script.onload = () => {
-            // Wait for execution with polling
-            let attempts = 0;
-            const maxAttempts = 50;
-            
-            function checkLogger() {
-                attempts++;
-                if (window.ExtensionLogger && window.ExtensionLogger.isInitialized) {
-                    resolve();
-                } else if (attempts < maxAttempts) {
-                    setTimeout(checkLogger, 100);
-                } else {
-                    // Even if logger fails, we continue with the initialization
-                    resolve();
-                }
-            }
-            
-            checkLogger();
-        };
-        
-        script.onerror = (error) => {
-            // Even if logger fails, we continue with the initialization
-            resolve();
-        };
-        
-        document.head.appendChild(script);
-    });
-}
-
-function loadDataCollectorScript() {
-    return new Promise((resolve, reject) => {
-        // Check if already loaded with more robust checking
-        if (window.CourtDataCollector) {
-            resolve();
-            return;
-        }
-        
-        // Create script element
-        const script = document.createElement('script');
-        script.src = chrome.runtime.getURL('assets/scripts/data-collector.js');
-        script.id = 'court-data-collector-data-script';
-        
-        script.onload = () => {
-            // Wait for execution with polling
-            let attempts = 0;
-            const maxAttempts = 50;
-            
-            function checkDataCollector() {
-                attempts++;
-                if (window.CourtDataCollector) {
-                    resolve();
-                } else if (attempts < maxAttempts) {
-                    setTimeout(checkDataCollector, 100);
-                } else {
-                    // Even if data collector fails, we continue with the initialization
-                    resolve();
-                }
-            }
-            
-            checkDataCollector();
-        };
-        
-        script.onerror = (error) => {
-            // Even if data collector fails, we continue with the initialization
-            resolve();
-        };
-        
-        document.head.appendChild(script);
-    });
-}
-
-function loadSidebarScript() {
-    return new Promise((resolve, reject) => {
-        // Check if already loaded with more robust checking
-        if (window.CourtDataCollectorSidebar && typeof window.CourtDataCollectorSidebar.init === 'function') {
-            resolve();
-            return;
-        }
-        
-        // Reset any sidebar script flags to allow fresh execution
-        delete window.sidebarScriptLoaded;
-        delete window.sidebarScriptExecuted;
-        delete window.sidebarScriptSkipped;
-        delete window.CourtDataCollectorSidebar;
-        delete window.sidebarScriptProperlyInitialized;
-        delete window.sidebarScriptProcessingComplete;
-        
-        // Create script element
-        const script = document.createElement('script');
-        script.src = chrome.runtime.getURL('assets/scripts/sidebar.js');
-        script.id = 'court-data-collector-sidebar-script';
-        
-        script.onload = () => {
-            // Wait for execution with polling
-            let attempts = 0;
-            const maxAttempts = 50;
-            
-            function checkSidebar() {
-                attempts++;
-                if (window.CourtDataCollectorSidebar && typeof window.CourtDataCollectorSidebar.init === 'function') {
-                    resolve();
-                } else if (attempts < maxAttempts) {
-                    setTimeout(checkSidebar, 100);
-                } else {
-                    // Even if sidebar fails, we continue with the initialization
-                    resolve();
-                }
-            }
-            
-            checkSidebar();
-        };
-        
-        script.onerror = (error) => {
-            // Even if sidebar fails, we continue with the initialization
-            resolve();
-        };
-        
-        document.head.appendChild(script);
-    });
-}
-
-function initializeSidebarFunctionality() {
-    // Try multiple times with delays to ensure sidebar is ready
-    let attempts = 0;
-    const maxAttempts = 20;
-    
-    function tryInitialize() {
-        attempts++;
-        
-        // Check if sidebar object exists and has required methods
-        if (window.CourtDataCollectorSidebar && typeof window.CourtDataCollectorSidebar.init === 'function') {
-            try {
-                // Call init method
-                window.CourtDataCollectorSidebar.init();
-                
-                // Set up debug functions
-                setupDebugFunctions();
-                
-                // Set success indicator
-                window.sidebarInitialized = true;
-                return true;
-            } catch (error) {
-                // Silent error handling
-                window.sidebarInitError = error.message;
-                // Continue trying
-                if (attempts < maxAttempts) {
-                    setTimeout(tryInitialize, 150);
-                } else {
-                    window.sidebarInitFailed = true;
-                    return false;
-                }
-            }
-        } else {
-            if (attempts < maxAttempts) {
-                setTimeout(tryInitialize, 150);
-            } else {
-                window.sidebarInitFailed = true;
-                return false;
-            }
-        }
-    }
-    
-    // Start the initialization attempts
-    tryInitialize();
-}
-
-function setupDebugFunctions() {
-    window.testSidebar = {
-        checkElements: function() {
-            return window.CourtDataCollectorSidebar.debug ? 
-                window.CourtDataCollectorSidebar.debug.checkElements() : 
-                'Debug object not available';
-        },
-        switchTab: function(tabName) {
-            return window.CourtDataCollectorSidebar.debug ? 
-                window.CourtDataCollectorSidebar.debug.testTabSwitch(tabName) : 
-                window.CourtDataCollectorSidebar.switchTab(tabName);
-        },
-        getCurrentTab: function() {
-            return window.CourtDataCollectorSidebar.debug ? 
-                window.CourtDataCollectorSidebar.debug.getCurrentTab() : 
-                'Debug not available';
-        },
-        toggleConfig: function() {
-            const toggle = document.getElementById('config-toggle');
-            if (toggle) {
-                toggle.click();
-            }
-        },
-        debugInfo: function() {
-            return {
-                sidebarInitialized: window.sidebarInitialized,
-                sidebarInitError: window.sidebarInitError,
-                sidebarInitFailed: window.sidebarInitFailed,
-                contentScriptExecuted: window.contentScriptExecuted,
-                courtDataCollectorInitialized: window.courtDataCollectorInitialized,
-                sidebarScriptExecuted: window.sidebarScriptExecuted,
-                hasCourtDataCollectorSidebar: !!window.CourtDataCollectorSidebar,
-                sidebarMethods: window.CourtDataCollectorSidebar ? Object.keys(window.CourtDataCollectorSidebar) : []
-            };
-        }
-    };
-}
 
 // Handle keyboard shortcuts
 document.addEventListener('keydown', function handleKeyboardShortcuts(event) {
@@ -433,6 +214,78 @@ document.addEventListener('keydown', function handleKeyboardShortcuts(event) {
     if (event.ctrlKey && event.shiftKey && event.code === 'KeyC') {
         event.preventDefault();
         toggleSidebar();
+    }
+});
+
+
+// Handle messages from sidebar
+window.addEventListener('message', function handleSidebarMessage(event) {
+    // Only accept messages from same origin
+    if (event.source !== window) return;
+    
+    if (event.data.type === 'SIDEBAR_REQUEST') {
+        const { messageId, action, data } = event.data;
+
+        // Handle different actions
+        if (action === 'collectData') {
+            // Send message to background script
+            chrome.runtime.sendMessage({ action: 'collectData' }, (response) => {
+                // Send response back to sidebar
+                window.postMessage({
+                    type: 'SIDEBAR_RESPONSE',
+                    messageId: messageId,
+                    response: response || { success: false, error: 'No response from background' }
+                }, '*');
+            });
+        } else if (action === 'retrieveData') {
+            // Send message to background script
+            chrome.runtime.sendMessage({
+                action: 'retrieveData',
+                apiKey: data.apiKey,
+                serverUrl: data.serverUrl
+            }, (response) => {
+                // Send response back to sidebar
+                window.postMessage({
+                    type: 'SIDEBAR_RESPONSE',
+                    messageId: messageId,
+                    response: response || { success: false, error: 'No response from background' }
+                }, '*');
+            });
+        } else if (action === 'getSettings') {
+            // Get settings from chrome.storage
+            chrome.storage.local.get(['apiKey', 'serverUrl'], (result) => {
+                window.postMessage({
+                    type: 'SIDEBAR_RESPONSE',
+                    messageId: messageId,
+                    response: {
+                        success: true,
+                        settings: {
+                            apiKey: result.apiKey || '',
+                            serverUrl: result.serverUrl || 'http://localhost:3000'
+                        }
+                    }
+                }, '*');
+            });
+        } else if (action === 'saveSettings') {
+            // Save settings to chrome.storage
+            chrome.storage.local.set({
+                apiKey: data.settings.apiKey,
+                serverUrl: data.settings.serverUrl
+            }, () => {
+                window.postMessage({
+                    type: 'SIDEBAR_RESPONSE',
+                    messageId: messageId,
+                    response: { success: true, message: 'Settings saved' }
+                }, '*');
+            });
+        } else {
+            // Unknown action
+            window.postMessage({
+                type: 'SIDEBAR_RESPONSE',
+                messageId: messageId,
+                response: { success: false, error: 'Unknown action: ' + action }
+            }, '*');
+        }
     }
 });
 

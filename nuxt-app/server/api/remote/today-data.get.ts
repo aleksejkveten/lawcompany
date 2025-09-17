@@ -42,7 +42,6 @@ export default defineEventHandler(async (event) => {
       },
       select: {
         // Exclude id, uuid, isDeleted as requested
-        registrationNumber: true,
         caseNumber: true,
         incomingNumber: true,
         receiptDate: true,
@@ -71,7 +70,6 @@ export default defineEventHandler(async (event) => {
       },
       select: {
         // Exclude id, uuid, isDeleted as requested
-        registrationNumber: true,
         caseNumber: true,
         incomingNumber: true,
         receiptDate: true,

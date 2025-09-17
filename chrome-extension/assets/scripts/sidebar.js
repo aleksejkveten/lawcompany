@@ -4,10 +4,10 @@
 
 // Prevent duplicate script execution
 if (window.sidebarScriptLoaded || window.CourtDataCollectorSidebar) {
-    console.log('Sidebar script already loaded, skipping...');
+    // Script already loaded
 } else {
     window.sidebarScriptLoaded = true;
-    
+
     // Main sidebar object
     const CourtDataCollectorSidebar = {
         // State variables
@@ -17,9 +17,59 @@ if (window.sidebarScriptLoaded || window.CourtDataCollectorSidebar) {
         serverUrl: 'http://localhost:3000',
         isInitialized: false,
         
+        // Send message to content script (which has access to Chrome API)
+        sendMessageToContentScript(action, data, callback, retryCount = 0) {
+            // Create unique message ID
+            const messageId = 'sidebar_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+
+            let timeoutId;
+            let responded = false;
+
+            // Listen for response
+            const responseHandler = (event) => {
+                if (event.source !== window) return;
+                if (event.data.type === 'SIDEBAR_RESPONSE' && event.data.messageId === messageId) {
+                    if (responded) return; // Prevent duplicate responses
+                    responded = true;
+
+                    window.removeEventListener('message', responseHandler);
+                    if (timeoutId) clearTimeout(timeoutId);
+
+                    callback(event.data.response);
+                }
+            };
+
+            window.addEventListener('message', responseHandler);
+
+            // Send message to content script
+            window.postMessage({
+                type: 'SIDEBAR_REQUEST',
+                messageId: messageId,
+                action: action,
+                data: data
+            }, '*');
+
+            // Timeout after 15 seconds with retry logic
+            timeoutId = setTimeout(() => {
+                if (responded) return; // Already responded
+                responded = true;
+
+                window.removeEventListener('message', responseHandler);
+
+                // Retry up to 2 times
+                if (retryCount < 2) {
+                    setTimeout(() => {
+                        this.sendMessageToContentScript(action, data, callback, retryCount + 1);
+                    }, 1000); // Wait 1 second before retry
+                } else {
+                    console.error(`Message ${messageId} failed after 2 retries`);
+                    callback({ success: false, error: 'Request timeout after retries' });
+                }
+            }, 15000);
+        },
+        
         // Initialize the sidebar
         init() {
-            console.log('Initializing Court Data Collector Sidebar...');
             
             // Wait for DOM to be ready
             if (document.readyState === 'loading') {
@@ -31,7 +81,6 @@ if (window.sidebarScriptLoaded || window.CourtDataCollectorSidebar) {
         
         // Main initialization function
         initializeSidebar() {
-            console.log('Setting up sidebar...');
             
             // Check if sidebar container exists
             const sidebarContainer = document.getElementById('court-data-collector-sidebar');
@@ -50,17 +99,40 @@ if (window.sidebarScriptLoaded || window.CourtDataCollectorSidebar) {
             // Initialize configuration as collapsed
             this.initializeConfigBlock();
             
-            // Show default tab
-            this.showTab('data-collection');
+            // Show default tab immediately (without background loading)
+            this.showTabImmediate('data-collection');
             
             // Mark as initialized
             this.isInitialized = true;
-            console.log('Sidebar initialized successfully');
+        },
+        
+        // Show specific tab immediately (for initial load)
+        showTabImmediate(tabName) {
+            const tabContents = document.querySelectorAll('.cdc-tab-content');
+            tabContents.forEach(content => {
+                content.classList.remove('cdc-active');
+            });
+            
+            const targetTab = document.getElementById(tabName);
+            if (targetTab) {
+                targetTab.classList.add('cdc-active');
+            }
+            
+            // Update button states
+            const tabButtons = document.querySelectorAll('.cdc-menu-btn');
+            tabButtons.forEach(button => {
+                const buttonTab = button.getAttribute('data-tab');
+                button.classList.remove('cdc-active');
+                if (buttonTab === tabName) {
+                    button.classList.add('cdc-active');
+                }
+            });
+            
+            this.currentTab = tabName;
         },
         
         // Setup all event listeners
         setupEventListeners() {
-            console.log('Setting up event listeners...');
             
             // Tab switching
             this.setupTabListeners();
@@ -269,9 +341,52 @@ if (window.sidebarScriptLoaded || window.CourtDataCollectorSidebar) {
             }
         },
         
-        // Switch to specific tab
-        switchTab(tabName) {
-            console.log(`Switching to tab: ${tabName}`);
+        // Show loading indicator
+        showLoading(show) {
+            const loadingIndicator = document.getElementById('loading-indicator');
+            if (loadingIndicator) {
+                if (show) {
+                    loadingIndicator.style.display = 'flex';
+                    loadingIndicator.style.position = 'fixed';
+                    loadingIndicator.style.top = '50%';
+                    loadingIndicator.style.left = '50%';
+                    loadingIndicator.style.transform = 'translate(-50%, -50%)';
+                    loadingIndicator.style.zIndex = '2147483647';
+                    loadingIndicator.style.width = '280px';
+                    loadingIndicator.style.maxWidth = '90%';
+                    loadingIndicator.style.background = 'rgba(255, 255, 255, 0.95)';
+                    loadingIndicator.style.backdropFilter = 'blur(10px)';
+                    loadingIndicator.style.borderRadius = '16px';
+                    loadingIndicator.style.boxShadow = '0 10px 30px rgba(0, 0, 0, 0.3)';
+                    loadingIndicator.style.border = '2px solid #3b82f6';
+                } else {
+                    loadingIndicator.style.display = 'none';
+                }
+            }
+        },
+        
+        // Show tab with loading indicator for specific actions
+        showTabWithActionLoading(tabName, showLoading) {
+            
+            // Hide all tabs
+            const tabContents = document.querySelectorAll('.cdc-tab-content');
+            tabContents.forEach(content => {
+                content.classList.remove('cdc-active');
+            });
+            
+            // Show target tab
+            const targetTab = document.getElementById(tabName);
+            if (targetTab) {
+                targetTab.classList.add('cdc-active');
+                
+                // Handle loading indicator if needed
+                if (showLoading) {
+                    const loadingIndicator = targetTab.querySelector('.cdc-tab-loading');
+                    if (loadingIndicator) {
+                        loadingIndicator.style.display = 'flex';
+                    }
+                }
+            }
             
             // Update button states
             const tabButtons = document.querySelectorAll('.cdc-menu-btn');
@@ -283,167 +398,201 @@ if (window.sidebarScriptLoaded || window.CourtDataCollectorSidebar) {
                 }
             });
             
-            // Show/hide tab content
-            this.showTab(tabName);
             this.currentTab = tabName;
         },
         
-        // Show specific tab content
-        showTab(tabName) {
-            const tabContents = document.querySelectorAll('.cdc-tab-content');
-            tabContents.forEach(content => {
-                content.classList.remove('cdc-active');
-            });
+        // Switch to specific tab with appropriate loading
+        switchTab(tabName) {
             
-            const targetTab = document.getElementById(tabName);
-            if (targetTab) {
-                targetTab.classList.add('cdc-active');
-            }
-        },
-        
-        // Toggle configuration block
-        toggleConfigBlock() {
-            const configContent = document.getElementById('config-content');
-            const toggleBtn = document.getElementById('config-toggle');
-            const configHeader = document.getElementById('config-header');
-            
-            if (configContent && toggleBtn && configHeader) {
-                this.isConfigExpanded = !this.isConfigExpanded;
+            // For logs tab, show loading indicator and load data
+            if (tabName === 'logs') {
+                // Show tab with loading indicator
+                this.showTabWithActionLoading(tabName, true);
                 
-                if (this.isConfigExpanded) {
-                    configContent.classList.remove('cdc-collapsed');
-                    configHeader.classList.remove('cdc-collapsed');
-                    toggleBtn.textContent = '▼';
-                } else {
-                    configContent.classList.add('cdc-collapsed');
-                    configHeader.classList.add('cdc-collapsed');
-                    toggleBtn.textContent = '▶';
-                }
-                
-                console.log(`Config expanded: ${this.isConfigExpanded}`);
-            }
-        },
-        
-        // Load settings from storage
-        loadSettings() {
-            if (typeof chrome !== 'undefined' && chrome.runtime) {
-                chrome.runtime.sendMessage(
-                    { action: 'getSettings' },
-                    (response) => {
-                        if (response && response.success) {
-                            this.apiKey = response.settings.apiKey || '';
-                            this.serverUrl = response.settings.serverUrl || 'http://localhost:3000';
-                            
-                            // Update UI
-                            const apiKeyInput = document.getElementById('api-key');
-                            if (apiKeyInput) {
-                                apiKeyInput.value = this.apiKey;
+                // Load logs data asynchronously
+                setTimeout(() => {
+                    this.refreshLogs().finally(() => {
+                        // Hide loading indicator for logs tab
+                        const logsTab = document.getElementById('logs');
+                        if (logsTab) {
+                            const loadingIndicator = logsTab.querySelector('.cdc-tab-loading');
+                            if (loadingIndicator) {
+                                loadingIndicator.style.display = 'none';
                             }
                         }
-                    }
-                );
+                    });
+                }, 100);
+            } else if (tabName === 'data-retrieval') {
+                // Show data retrieval tab without loading indicator
+                this.showTabWithActionLoading(tabName, false);
+            } else {
+                // Show other tabs immediately
+                this.showTabWithActionLoading(tabName, false);
             }
-        },
-        
-        // Save settings to storage
-        saveSettings() {
-            const apiKeyInput = document.getElementById('api-key');
             
-            if (apiKeyInput) {
-                const newApiKey = apiKeyInput.value.trim();
-                
-                if (!newApiKey) {
-                    this.showStatus('API ключ не может быть пустым', 'error');
-                    return;
-                }
-                
-                const settings = {
-                    apiKey: newApiKey,
-                    serverUrl: this.serverUrl
-                };
-                
-                if (typeof chrome !== 'undefined' && chrome.runtime) {
-                    chrome.runtime.sendMessage(
-                        { 
-                            action: 'saveSettings',
-                            settings: settings
-                        },
-                        (response) => {
-                            if (response && response.success) {
-                                this.apiKey = newApiKey;
-                                this.showStatus('Настройки сохранены', 'success');
-                            } else {
-                                this.showStatus('Ошибка при сохранении настроек', 'error');
-                            }
-                        }
-                    );
-                }
-            }
+            this.currentTab = tabName;
         },
         
         // Collect data
         collectData() {
-            if (!this.apiKey) {
-                this.showStatus('Сначала настройте API ключ в разделе настроек', 'error');
-                this.switchTab('settings');
-                return;
-            }
-            
-            this.showLoading(true);
-            this.showStatus('Сбор данных...', 'info');
-            
-            if (typeof chrome !== 'undefined' && chrome.runtime) {
-                chrome.runtime.sendMessage(
-                    { action: 'collectData' },
-                    (response) => {
-                        this.showLoading(false);
-                        if (response && response.success) {
-                            this.showStatus('Данные собраны и отправлены на сервер', 'success');
-                        } else {
-                            this.showStatus('Ошибка при сборе данных: ' + (response?.error || 'Неизвестная ошибка'), 'error');
+            console.log('Starting data collection process...');
+
+            // Always refresh API key from storage before operation to prevent reset
+            this.loadSettings(0, () => {
+                if (!this.apiKey) {
+                    this.showStatus('Сначала настройте API ключ в разделе настроек', 'error');
+                    this.switchTab('settings');
+                    return;
+                }
+
+                // Show loading indicator immediately
+                this.showLoading(true);
+                this.showStatus('Сбор данных со страницы...', 'info');
+
+                // Send request to content script
+                this.sendMessageToContentScript('collectData', {}, (response) => {
+                    console.log('Received response for collectData:', response);
+                    this.showLoading(false);
+
+                    if (response && response.success) {
+                        const stats = response.stats || {};
+                        const processed = stats.processed || 0;
+                        const created = stats.created || 0;
+                        const updated = stats.updated || 0;
+                        const skipped = stats.skipped || 0;
+
+                        let statusMessage = `Данные обработаны! Обработано: ${processed}`;
+                        if (created > 0) statusMessage += `, новых: ${created}`;
+                        if (updated > 0) statusMessage += `, обновлено: ${updated}`;
+                        if (skipped > 0) statusMessage += `, пропущено: ${skipped}`;
+
+                        this.showStatus(statusMessage, 'success');
+                        console.log('Data collection successful:', stats);
+
+                        // Log detailed operation info
+                        if (window.ExtensionLogger && typeof window.ExtensionLogger.info === 'function') {
+                            window.ExtensionLogger.info('Data collection completed', {
+                                processed: processed,
+                                created: created,
+                                updated: updated,
+                                skipped: skipped,
+                                timestamp: new Date().toISOString()
+                            }, 'data-collection');
+                        }
+                    } else {
+                        const errorMessage = response?.error || 'Неизвестная ошибка';
+                        const errorCode = response?.code || '';
+                        console.error('Data collection failed:', errorMessage);
+                        this.showStatus('Ошибка при сборе данных: ' + errorMessage + (errorCode ? ' (' + errorCode + ')' : ''), 'error');
+
+                        // Log error
+                        if (window.ExtensionLogger && typeof window.ExtensionLogger.error === 'function') {
+                            window.ExtensionLogger.error('Data collection failed', {
+                                error: errorMessage,
+                                errorCode: errorCode,
+                                timestamp: new Date().toISOString()
+                            }, 'data-collection');
                         }
                     }
-                );
-            } else {
-                this.showLoading(false);
-                this.showStatus('Ошибка: Chrome API недоступен', 'error');
-            }
+                });
+            });
         },
         
         // Retrieve data
         retrieveData() {
-            if (!this.apiKey) {
-                this.showStatus('Сначала настройте API ключ в разделе настроек', 'error');
-                this.switchTab('settings');
-                return;
-            }
-            
-            this.showLoading(true);
-            this.showStatus('Загрузка данных...', 'info');
-            
-            if (typeof chrome !== 'undefined' && chrome.runtime) {
-                chrome.runtime.sendMessage(
-                    { 
-                        action: 'retrieveData',
-                        apiKey: this.apiKey,
-                        serverUrl: this.serverUrl
-                    },
-                    (response) => {
-                        this.showLoading(false);
-                        
-                        if (response && response.success) {
-                            this.generateAndDownloadFile(response.data);
-                            this.displayRetrievedData(response.data);
-                            this.showStatus(`Данные загружены! Новых: ${response.data.summary.totalCreated}, обновлено: ${response.data.summary.totalUpdated}`, 'success');
-                        } else {
-                            this.showStatus('Ошибка при загрузке данных: ' + (response?.error || 'Неизвестная ошибка'), 'error');
-                        }
+            // Always refresh API key from storage before operation to prevent reset
+            this.loadSettings(0, () => {
+                if (!this.apiKey) {
+                    this.showStatus('Сначала настройте API ключ в разделе настроек', 'error');
+                    this.switchTab('settings');
+                    return;
+                }
+
+                // Log operation start
+                if (window.ExtensionLogger && typeof window.ExtensionLogger.info === 'function') {
+                    window.ExtensionLogger.info('Starting data retrieval from server', {
+                        serverUrl: this.serverUrl,
+                        timestamp: new Date().toISOString()
+                    }, 'data-retrieval');
+                }
+
+                // Show loading indicator for data retrieval tab
+                const dataRetrievalTab = document.getElementById('data-retrieval');
+                let loadingIndicator = null;
+    
+                if (dataRetrievalTab) {
+                    loadingIndicator = dataRetrievalTab.querySelector('.cdc-tab-loading');
+                    if (loadingIndicator) {
+                        loadingIndicator.style.display = 'flex';
+                        loadingIndicator.style.position = 'fixed';
+                        loadingIndicator.style.top = '50%';
+                        loadingIndicator.style.left = '50%';
+                        loadingIndicator.style.transform = 'translate(-50%, -50%)';
+                        loadingIndicator.style.zIndex = '2147483647';
                     }
-                );
-            } else {
-                this.showLoading(false);
-                this.showStatus('Ошибка: Chrome API недоступен', 'error');
-            }
+                }
+
+                this.showStatus('Загрузка данных с сервера...', 'info');
+
+                // Send request to content script
+                this.sendMessageToContentScript('retrieveData', {
+                    apiKey: this.apiKey,
+                    serverUrl: this.serverUrl
+                }, (response) => {
+                    console.log('Received response for retrieveData:', response);
+
+                    // Hide loading indicator
+                    if (loadingIndicator) {
+                        loadingIndicator.style.display = 'none';
+                    }
+
+                    if (response && response.success) {
+                        const data = response.data;
+                        const totalCreated = data.createdToday?.count || 0;
+                        const totalUpdated = data.updatedToday?.count || 0;
+                        const totalItems = totalCreated + totalUpdated;
+
+                        // Log successful operation
+                        if (window.ExtensionLogger && typeof window.ExtensionLogger.info === 'function') {
+                            window.ExtensionLogger.info('Data retrieval completed successfully', {
+                                totalItems: totalItems,
+                                created: totalCreated,
+                                updated: totalUpdated,
+                                serverUrl: this.serverUrl,
+                                timestamp: new Date().toISOString()
+                            }, 'data-retrieval');
+                        }
+
+                        if (totalItems > 0) {
+                            this.generateAndDownloadFile(data);
+                            this.displayRetrievedData(data);
+                            this.showStatus(`Данные загружены! Всего записей: ${totalItems} (новых: ${totalCreated}, обновлено: ${totalUpdated})`, 'success');
+                        } else {
+                            this.showStatus('Данных за сегодня не найдено', 'warning');
+                            // Clear results container
+                            const resultsContainer = document.getElementById('data-results');
+                            if (resultsContainer) {
+                                resultsContainer.innerHTML = '<p style="text-align: center; color: #6b7280; padding: 20px;">Данных за сегодня не найдено</p>';
+                            }
+                        }
+                    } else {
+                        const errorMessage = response?.error || 'Неизвестная ошибка';
+                        const errorCode = response?.code || '';
+
+                        // Log error
+                        if (window.ExtensionLogger && typeof window.ExtensionLogger.error === 'function') {
+                            window.ExtensionLogger.error('Data retrieval failed', {
+                                error: errorMessage,
+                                errorCode: errorCode,
+                                serverUrl: this.serverUrl,
+                                timestamp: new Date().toISOString()
+                            }, 'data-retrieval');
+                        }
+
+                        this.showStatus('Ошибка при загрузке данных: ' + errorMessage + (errorCode ? ' (' + errorCode + ')' : ''), 'error');
+                    }
+                });
+            });
         },
         
         // Generate and download file
@@ -582,25 +731,32 @@ if (window.sidebarScriptLoaded || window.CourtDataCollectorSidebar) {
         
         // Logs functionality
         async refreshLogs() {
+            const logsTab = document.getElementById('logs');
+            
             try {
-                if (window.ExtensionLogger && window.ExtensionLogger.getLogs) {
+                if (window.ExtensionLogger && typeof window.ExtensionLogger.getLogs === 'function') {
                     const logs = await window.ExtensionLogger.getLogs({ limit: 100 });
                     const stats = await window.ExtensionLogger.getStats();
-                    
+
                     this.displayLogStats(stats);
                     this.displayLogs(logs);
                 } else {
+                    console.warn('ExtensionLogger not available or functions missing');
                     this.displayLogs([]);
                     this.displayLogStats({ total: 0, byLevel: {}, byCategory: {} });
                 }
             } catch (error) {
                 console.error('Error refreshing logs:', error);
+                this.showStatus('Ошибка при загрузке логов: ' + error.message, 'error');
             }
         },
         
         async filterLogs() {
             try {
-                if (!window.ExtensionLogger || !window.ExtensionLogger.getLogs) return;
+                if (!window.ExtensionLogger || typeof window.ExtensionLogger.getLogs !== 'function') {
+                    console.warn('ExtensionLogger not available for filtering');
+                    return;
+                }
                 
                 const levelFilter = document.getElementById('log-level-filter')?.value;
                 const categoryFilter = document.getElementById('log-category-filter')?.value;
@@ -616,6 +772,7 @@ if (window.sidebarScriptLoaded || window.CourtDataCollectorSidebar) {
                 this.displayLogs(logs);
             } catch (error) {
                 console.error('Error filtering logs:', error);
+                this.showStatus('Ошибка при фильтрации логов: ' + error.message, 'error');
             }
         },
         
@@ -625,19 +782,21 @@ if (window.sidebarScriptLoaded || window.CourtDataCollectorSidebar) {
             }
             
             try {
-                if (window.ExtensionLogger && window.ExtensionLogger.clearLogs) {
+                if (window.ExtensionLogger && typeof window.ExtensionLogger.clearLogs === 'function') {
                     await window.ExtensionLogger.clearLogs();
                     await this.refreshLogs();
                     this.showStatus('Логи очищены', 'success');
+                } else {
+                    this.showStatus('Функция очистки логов недоступна', 'error');
                 }
             } catch (error) {
-                this.showStatus('Ошибка при очистке логов', 'error');
+                this.showStatus('Ошибка при очистке логов: ' + error.message, 'error');
             }
         },
         
         async exportLogs() {
             try {
-                if (!window.ExtensionLogger || !window.ExtensionLogger.exportLogs) {
+                if (!window.ExtensionLogger || typeof window.ExtensionLogger.exportLogs !== 'function') {
                     this.showStatus('Экспорт логов недоступен', 'error');
                     return;
                 }
@@ -656,73 +815,321 @@ if (window.sidebarScriptLoaded || window.CourtDataCollectorSidebar) {
                 
                 this.showStatus('Логи экспортированы', 'success');
             } catch (error) {
-                this.showStatus('Ошибка при экспорте логов', 'error');
+                this.showStatus('Ошибка при экспорте логов: ' + error.message, 'error');
             }
         },
         
         displayLogStats(stats) {
             const statsContainer = document.getElementById('log-stats');
-            if (!statsContainer) return;
+            if (!statsContainer) {
+                console.warn('Log stats container not found');
+                return;
+            }
             
-            statsContainer.innerHTML = `
-                <div class="cdc-stats-grid">
-                    <div class="cdc-stat-item">
-                        <span class="cdc-stat-label">Всего:</span>
-                        <span class="cdc-stat-value">${stats.total || 0}</span>
-                    </div>
-                    <div class="cdc-stat-item cdc-error">
-                        <span class="cdc-stat-label">Ошибки:</span>
-                        <span class="cdc-stat-value">${stats.byLevel?.ERROR || 0}</span>
-                    </div>
-                    <div class="cdc-stat-item cdc-warn">
-                        <span class="cdc-stat-label">Предупреждения:</span>
-                        <span class="cdc-stat-value">${stats.byLevel?.WARN || 0}</span>
-                    </div>
-                    <div class="cdc-stat-item cdc-info">
-                        <span class="cdc-stat-label">Информация:</span>
-                        <span class="cdc-stat-value">${stats.byLevel?.INFO || 0}</span>
-                    </div>
-                </div>
-            `;
+            try {
+                // Create stats element using DOM methods to avoid TrustedHTML policy issues
+                const statsGrid = document.createElement('div');
+                statsGrid.className = 'cdc-stats-grid';
+                
+                // Total stats item
+                const totalItem = document.createElement('div');
+                totalItem.className = 'cdc-stat-item';
+                totalItem.innerHTML = `
+                    <span class="cdc-stat-label">Всего:</span>
+                    <span class="cdc-stat-value">${stats.total || 0}</span>
+                `;
+                
+                // Error stats item
+                const errorItem = document.createElement('div');
+                errorItem.className = 'cdc-stat-item cdc-error';
+                errorItem.innerHTML = `
+                    <span class="cdc-stat-label">Ошибки:</span>
+                    <span class="cdc-stat-value">${stats.byLevel?.ERROR || 0}</span>
+                `;
+                
+                // Warning stats item
+                const warnItem = document.createElement('div');
+                warnItem.className = 'cdc-stat-item cdc-warn';
+                warnItem.innerHTML = `
+                    <span class="cdc-stat-label">Предупреждения:</span>
+                    <span class="cdc-stat-value">${stats.byLevel?.WARN || 0}</span>
+                `;
+                
+                // Info stats item
+                const infoItem = document.createElement('div');
+                infoItem.className = 'cdc-stat-item cdc-info';
+                infoItem.innerHTML = `
+                    <span class="cdc-stat-label">Информация:</span>
+                    <span class="cdc-stat-value">${stats.byLevel?.INFO || 0}</span>
+                `;
+                
+                // Clear container and append items
+                statsContainer.innerHTML = '';
+                statsGrid.appendChild(totalItem);
+                statsGrid.appendChild(errorItem);
+                statsGrid.appendChild(warnItem);
+                statsGrid.appendChild(infoItem);
+                statsContainer.appendChild(statsGrid);
+            } catch (error) {
+                console.error('Error displaying log stats:', error);
+            }
         },
         
         displayLogs(logs) {
             const logsContainer = document.getElementById('log-entries');
-            if (!logsContainer) return;
-            
-            if (logs.length === 0) {
-                logsContainer.innerHTML = '<p class="cdc-no-logs">Логи не найдены</p>';
+            if (!logsContainer) {
+                console.warn('Log entries container not found');
                 return;
             }
             
-            logsContainer.innerHTML = logs.map(log => {
-                const timestamp = new Date(log.timestamp).toLocaleString('ru-RU');
-                const levelClass = 'cdc-' + log.level.toLowerCase();
-                const contextStr = Object.keys(log.context || {}).length > 0 ? 
-                    JSON.stringify(log.context, null, 2) : '';
+            try {
+                // Clear container
+                logsContainer.innerHTML = '';
                 
-                return `
-                    <div class="cdc-log-entry ${levelClass}">
-                        <div class="cdc-log-header">
-                            <span class="cdc-log-level">${log.level}</span>
-                            <span class="cdc-log-category">[${log.category}]</span>
-                            <span class="cdc-log-timestamp">${timestamp}</span>
-                        </div>
-                        <div class="cdc-log-message">${log.message}</div>
-                        ${contextStr ? `<div class="cdc-log-context"><pre>${contextStr}</pre></div>` : ''}
-                    </div>
-                `;
-            }).join('');
-        },
-        
-        // Utility functions
-        showLoading(show) {
-            const loadingIndicator = document.getElementById('loading-indicator');
-            if (loadingIndicator) {
-                loadingIndicator.style.display = show ? 'flex' : 'none';
+                if (logs.length === 0) {
+                    const noLogsElement = document.createElement('p');
+                    noLogsElement.className = 'cdc-no-logs';
+                    noLogsElement.textContent = 'Логи не найдены';
+                    logsContainer.appendChild(noLogsElement);
+                    return;
+                }
+                
+                // Create log entries using DOM methods
+                logs.forEach(log => {
+                    const timestamp = new Date(log.timestamp).toLocaleString('ru-RU');
+                    const levelClass = 'cdc-' + log.level.toLowerCase();
+
+                    // Create human-readable context string
+                    let contextStr = '';
+                    if (log.context && typeof log.context === 'object' && Object.keys(log.context).length > 0) {
+                        try {
+                            // Format context as readable key-value pairs
+                            const contextLines = [];
+                            for (const [key, value] of Object.entries(log.context)) {
+                                if (value !== undefined && value !== null) {
+                                    contextLines.push(`${key}: ${String(value)}`);
+                                }
+                            }
+                            contextStr = contextLines.join('\n');
+                        } catch (error) {
+                            contextStr = 'Error formatting context';
+                        }
+                    }
+
+                    // Create log entry container
+                    const logEntry = document.createElement('div');
+                    logEntry.className = `cdc-log-entry ${levelClass}`;
+
+                    // Create log header
+                    const logHeader = document.createElement('div');
+                    logHeader.className = 'cdc-log-header';
+
+                    const levelSpan = document.createElement('span');
+                    levelSpan.className = 'cdc-log-level';
+                    levelSpan.textContent = log.level;
+
+                    const categorySpan = document.createElement('span');
+                    categorySpan.className = 'cdc-log-category';
+                    categorySpan.textContent = `[${log.category || 'general'}]`;
+
+                    const timeSpan = document.createElement('span');
+                    timeSpan.className = 'cdc-log-timestamp';
+                    timeSpan.textContent = timestamp;
+
+                    logHeader.appendChild(levelSpan);
+                    logHeader.appendChild(categorySpan);
+                    logHeader.appendChild(timeSpan);
+
+                    // Create log message
+                    const messageDiv = document.createElement('div');
+                    messageDiv.className = 'cdc-log-message';
+                    messageDiv.textContent = log.message || 'No message';
+
+                    // Append elements to log entry
+                    logEntry.appendChild(logHeader);
+                    logEntry.appendChild(messageDiv);
+
+                    // Add context if available
+                    if (contextStr) {
+                        const contextDiv = document.createElement('div');
+                        contextDiv.className = 'cdc-log-context';
+
+                        const preElement = document.createElement('pre');
+                        preElement.textContent = contextStr;
+                        preElement.style.fontSize = '11px';
+                        preElement.style.lineHeight = '1.3';
+                        preElement.style.margin = '4px 0';
+                        preElement.style.whiteSpace = 'pre-wrap';
+                        preElement.style.wordBreak = 'break-word';
+
+                        contextDiv.appendChild(preElement);
+                        logEntry.appendChild(contextDiv);
+                    }
+
+                    // Add to container
+                    logsContainer.appendChild(logEntry);
+                });
+            } catch (error) {
+                console.error('Error displaying logs:', error);
+                logsContainer.innerHTML = '';
+                const errorElement = document.createElement('p');
+                errorElement.className = 'cdc-no-logs';
+                errorElement.textContent = 'Ошибка при отображении логов';
+                logsContainer.appendChild(errorElement);
             }
         },
         
+        // Show tab with loading indicator
+        showTabWithLoading(tabName) {
+            // Hide all tabs
+            const tabContents = document.querySelectorAll('.cdc-tab-content');
+            tabContents.forEach(content => {
+                content.classList.remove('cdc-active');
+            });
+            
+            // Show target tab
+            const targetTab = document.getElementById(tabName);
+            if (targetTab) {
+                targetTab.classList.add('cdc-active');
+                
+                // For tabs that need data loading, show loading indicator
+                if (tabName === 'logs') {
+                    // Show loading indicator
+                    const loadingIndicator = targetTab.querySelector('.cdc-tab-loading');
+                    if (loadingIndicator) {
+                        loadingIndicator.style.display = 'flex';
+                    }
+                    
+                    // Load logs data asynchronously
+                    setTimeout(() => {
+                        this.refreshLogs().finally(() => {
+                            // Hide loading indicator
+                            if (loadingIndicator) {
+                                loadingIndicator.style.display = 'none';
+                            }
+                        });
+                    }, 100);
+                } else if (tabName === 'data-retrieval') {
+                    // Show loading indicator for data retrieval tab if needed
+                    const loadingIndicator = targetTab.querySelector('.cdc-tab-loading');
+                    if (loadingIndicator) {
+                        // Only show if there's actual data loading happening
+                        // For now we just show the tab without loading indicator
+                    }
+                }
+            }
+        },
+        
+        // Toggle configuration block
+        toggleConfigBlock() {
+            const configContent = document.getElementById('config-content');
+            const toggleBtn = document.getElementById('config-toggle');
+            const configHeader = document.getElementById('config-header');
+            
+            if (configContent && toggleBtn && configHeader) {
+                this.isConfigExpanded = !this.isConfigExpanded;
+                
+                if (this.isConfigExpanded) {
+                    configContent.classList.remove('cdc-collapsed');
+                    configHeader.classList.remove('cdc-collapsed');
+                    toggleBtn.textContent = '▼';
+                } else {
+                    configContent.classList.add('cdc-collapsed');
+                    configHeader.classList.add('cdc-collapsed');
+                    toggleBtn.textContent = '▶';
+                }
+            }
+        },
+        
+        // Load settings from storage with retry logic
+        loadSettings(retryCount = 0, callback = null) {
+
+            this.sendMessageToContentScript('getSettings', {}, (response) => {
+                if (response && response.success) {
+                    const settings = response.settings;
+                    this.apiKey = settings.apiKey || '';
+                    this.serverUrl = settings.serverUrl || 'http://localhost:3000';
+
+                    // Update UI
+                    const apiKeyInput = document.getElementById('api-key');
+                    if (apiKeyInput) {
+                        apiKeyInput.value = this.apiKey;
+                    }
+
+                    // Call callback if provided
+                    if (callback && typeof callback === 'function') {
+                        callback();
+                    }
+                } else {
+                    console.error('Failed to load settings:', response?.error);
+                    // Retry with exponential backoff, max 3 retries
+                    if (retryCount < 3) {
+                        const delay = Math.min(1000 * Math.pow(2, retryCount), 5000); // Max 5 seconds
+                        console.log(`Retrying to load settings in ${delay}ms (attempt ${retryCount + 1}/3)...`);
+                        setTimeout(() => {
+                            this.loadSettings(retryCount + 1, callback);
+                        }, delay);
+                    } else {
+                        console.warn('Failed to load settings after 3 attempts, using defaults');
+                        // Use defaults if loading fails
+                        this.apiKey = '';
+                        this.serverUrl = 'http://localhost:3000';
+                        const apiKeyInput = document.getElementById('api-key');
+                        if (apiKeyInput) {
+                            apiKeyInput.value = this.apiKey;
+                        }
+
+                        // Call callback even on failure
+                        if (callback && typeof callback === 'function') {
+                            callback();
+                        }
+                    }
+                }
+            });
+        },
+        
+        // Save settings to storage with retry logic
+        saveSettings(retryCount = 0) {
+            const apiKeyInput = document.getElementById('api-key');
+
+            if (apiKeyInput) {
+                const newApiKey = apiKeyInput.value.trim();
+                console.log('New API key:', newApiKey);
+
+                if (!newApiKey) {
+                    this.showStatus('API ключ не может быть пустым', 'error');
+                    return;
+                }
+
+                const settings = {
+                    apiKey: newApiKey,
+                    serverUrl: this.serverUrl
+                };
+
+                this.sendMessageToContentScript('saveSettings', { settings: settings }, (response) => {
+                    if (response && response.success) {
+                        this.apiKey = newApiKey;
+                        this.showStatus('Настройки сохранены', 'success');
+                    } else {
+                        console.error('Error saving to chrome.storage:', response?.error);
+                        if (retryCount < 3) {
+                            const delay = Math.min(1000 * Math.pow(2, retryCount), 5000); // Max 5 seconds
+                            console.log(`Retrying save settings in ${delay}ms (attempt ${retryCount + 1}/3)...`);
+                            setTimeout(() => {
+                                this.saveSettings(retryCount + 1);
+                            }, delay);
+                        } else {
+                            this.showStatus('Ошибка при сохранении настроек: ' + (response?.error || 'Неизвестная ошибка'), 'error');
+                        }
+                    }
+                });
+            } else {
+                this.showStatus('Ошибка: поле API ключа не найдено', 'error');
+                console.error('API key input not found');
+            }
+        },
+        
+        // Show status message
         showStatus(message, type = '') {
             const statusElement = document.getElementById('status-message');
             if (statusElement) {
@@ -742,6 +1149,7 @@ if (window.sidebarScriptLoaded || window.CourtDataCollectorSidebar) {
             }
         },
         
+        // Utility functions
         formatAmount(amount) {
             if (!amount) return 'Не указана';
             
@@ -847,55 +1255,57 @@ if (window.sidebarScriptLoaded || window.CourtDataCollectorSidebar) {
         }
     };
     
-    // Assign to window
-    window.CourtDataCollectorSidebar = CourtDataCollectorSidebar;
-    
-    // Auto-initialize if DOM is ready
-    if (document.readyState !== 'loading') {
-        setTimeout(() => {
-            try {
-                CourtDataCollectorSidebar.init();
-            } catch (e) {
-                console.error('Error initializing sidebar:', e);
-            }
-        }, 100);
-    } else {
-        document.addEventListener('DOMContentLoaded', () => {
-            try {
-                CourtDataCollectorSidebar.init();
-            } catch (e) {
-                console.error('Error initializing sidebar:', e);
-            }
-        });
-    }
-    
-    // Set up debug functions for testing
-    window.testSidebar = {
-        checkElements() {
-            return CourtDataCollectorSidebar.debug.checkElements();
-        },
-        switchTab(tabName) {
-            return CourtDataCollectorSidebar.debug.testTabSwitch(tabName);
-        },
-        getCurrentTab() {
-            return CourtDataCollectorSidebar.debug.getCurrentTab();
-        },
-        toggleConfig() {
-            const toggle = document.getElementById('config-toggle');
-            if (toggle) {
-                toggle.click();
-            }
-        },
-        debugInfo() {
-            return {
-                isInitialized: CourtDataCollectorSidebar.isInitialized,
-                currentTab: CourtDataCollectorSidebar.currentTab,
-                isConfigExpanded: CourtDataCollectorSidebar.isConfigExpanded,
-                hasCourtDataCollectorSidebar: !!window.CourtDataCollectorSidebar,
-                sidebarMethods: window.CourtDataCollectorSidebar ? Object.keys(window.CourtDataCollectorSidebar) : []
-            };
+        // Assign to window
+        window.CourtDataCollectorSidebar = CourtDataCollectorSidebar;
+
+        // Auto-initialize if DOM is ready
+        if (document.readyState !== 'loading') {
+            setTimeout(() => {
+                try {
+                    if (window.CourtDataCollectorSidebar && typeof window.CourtDataCollectorSidebar.init === 'function') {
+                        CourtDataCollectorSidebar.init();
+                    }
+                } catch (e) {
+                    console.error('Error initializing sidebar:', e);
+                }
+            }, 100);
+        } else {
+            document.addEventListener('DOMContentLoaded', () => {
+                try {
+                    if (window.CourtDataCollectorSidebar && typeof window.CourtDataCollectorSidebar.init === 'function') {
+                        CourtDataCollectorSidebar.init();
+                    }
+                } catch (e) {
+                    console.error('Error initializing sidebar after DOMContentLoaded:', e);
+                }
+            });
         }
-    };
-    
-    console.log('Court Data Collector Sidebar script loaded successfully');
+
+        // Set up debug functions for testing
+        window.testSidebar = {
+            checkElements() {
+                return CourtDataCollectorSidebar.debug.checkElements();
+            },
+            switchTab(tabName) {
+                return CourtDataCollectorSidebar.debug.testTabSwitch(tabName);
+            },
+            getCurrentTab() {
+                return CourtDataCollectorSidebar.debug.getCurrentTab();
+            },
+            toggleConfig() {
+                const toggle = document.getElementById('config-toggle');
+                if (toggle) {
+                    toggle.click();
+                }
+            },
+            debugInfo() {
+                return {
+                    isInitialized: CourtDataCollectorSidebar.isInitialized,
+                    currentTab: CourtDataCollectorSidebar.currentTab,
+                    isConfigExpanded: CourtDataCollectorSidebar.isConfigExpanded,
+                    hasCourtDataCollectorSidebar: !!window.CourtDataCollectorSidebar,
+                    sidebarMethods: window.CourtDataCollectorSidebar ? Object.keys(window.CourtDataCollectorSidebar) : []
+                };
+            }
+        };
 }

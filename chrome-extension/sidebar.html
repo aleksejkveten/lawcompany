@@ -130,6 +130,12 @@
                 <h2>Получение данных</h2>
                 <button id="retrieve-data" class="cdc-btn cdc-btn-primary">Получить данные</button>
                 
+                <!-- Добавляем индикатор загрузки для этой вкладки -->
+                <div class="cdc-tab-loading" style="display: none;">
+                    <div class="cdc-spinner"></div>
+                    <p>Загрузка данных...</p>
+                </div>
+                
                 <div id="data-results" class="cdc-data-results">
                     <!-- Results will be populated here -->
                 </div>
@@ -138,6 +144,12 @@
             <!-- Logs Tab -->
             <div id="logs" class="cdc-tab-content">
                 <h2>Логи расширения</h2>
+                
+                <!-- Добавляем индикатор загрузки для этой вкладки -->
+                <div class="cdc-tab-loading" style="display: none;">
+                    <div class="cdc-spinner"></div>
+                    <p>Загрузка логов...</p>
+                </div>
                 
                 <!-- Log Controls -->
                 <div class="cdc-log-controls">

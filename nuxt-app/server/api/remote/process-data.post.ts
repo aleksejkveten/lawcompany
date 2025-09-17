@@ -124,8 +124,7 @@ async function processCourtCase(caseData: any) {
   
   const casePayload = {
     uuid: existingCase?.uuid || randomUUID(),
-    registrationNumber: caseData.caseNumber || caseData.registrationNumber || '',
-    caseNumber: caseData.caseNumber || caseData.registrationNumber || '',
+    caseNumber: caseData.caseNumber || '',
     incomingNumber: caseData.incomingNumber,
     receiptDate: receiptDate,
     claimant: caseData.claimant,
@@ -138,7 +137,7 @@ async function processCourtCase(caseData: any) {
   if (existingCase) {
     // Update existing case if data has changed
     const hasChanges = (
-      existingCase.registrationNumber !== casePayload.registrationNumber ||
+
       existingCase.caseNumber !== casePayload.caseNumber ||
       existingCase.debtAmount !== casePayload.debtAmount ||
       existingCase.decision !== casePayload.decision ||
