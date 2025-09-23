@@ -1,5 +1,5 @@
 // API endpoint для обновления компании
-import prisma from "../../../utils/prisma";
+import prisma from "../../../../lib/prisma";
 
 export default defineEventHandler(async (event) => {
   try {
@@ -43,6 +43,9 @@ export default defineEventHandler(async (event) => {
             notes: body.notes || null,
             track: body.track || false,
             aliases: body.aliases || null,
+            address: body.address || null,
+            city: body.city || null,
+            site: body.site || null,
             updatedAt: new Date()
           }
         })
@@ -80,7 +83,10 @@ export default defineEventHandler(async (event) => {
               // Обновляем существующий контакт
               contact = await tx.contactPerson.update({
                 where: { id: contactData.id },
-                data: { name: contactData.name.trim() }
+                data: {
+                  name: contactData.name.trim(),
+                  source: contactData.source || null
+                }
               })
 
               // Обработка телефонов
@@ -159,6 +165,7 @@ export default defineEventHandler(async (event) => {
               contact = await tx.contactPerson.create({
                 data: {
                   name: contactData.name.trim(),
+                  source: contactData.source || null,
                   companyId: parseInt(companyId),
                   phones: {
                     create: (contactData.phones || []).filter((p: any) => p.number?.trim()).map((p: any) => ({

@@ -24,10 +24,29 @@ model User {
   isDeleted Boolean  @default(false)
 }
 
+model CompanyBase {
+  id          Int      @id @default(autoincrement())
+  fullName    String?
+  shortName   String?
+  status      String?
+  country     String?
+  email       String?
+  site        String?
+  unp         String?   @unique
+  address     String?
+  phones      String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  isDeleted   Boolean  @default(false)
+}
+
 model Company {
   id          Int      @id @default(autoincrement())
   name        String
-  unp         String?
+  unp         String?   @unique
+  address     String?
+  city        String?
+  site        String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   isDeleted   Boolean  @default(false)
@@ -38,7 +57,7 @@ model Company {
   sentEmails  SentEmail[]
   notes        String?
   track        Boolean? @default(false)
-  aliases      String? 
+  aliases      Json?
 }
 
 model ContactPerson {
@@ -48,6 +67,7 @@ model ContactPerson {
   companyId Int
   phones    Phone[]
   emails    Email[]
+  source    String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   isDeleted Boolean  @default(false)
@@ -88,6 +108,7 @@ model CourtCase {
   debtAmount       Float?    // Сумма долга
   decision         String?   // Решение о принятии заявления
   courtName        String   // Наименование суда
+  triedToParse     Boolean? @default(false)
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
   isDeleted        Boolean  @default(false)
@@ -95,10 +116,22 @@ model CourtCase {
   track            Boolean? @default(false)
 }
 
+model ChannelCategory {
+  id        Int      @id @default(autoincrement())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  isDeleted Boolean  @default(false)
+  smsTemplates SmsTemplate[]
+  emailTemplates EmailTemplate[]
+}
+
 model SmsTemplate {
   id        Int      @id @default(autoincrement())
   name      String
   content   String
+  channelCategory ChannelCategory @relation(fields: [channelCategoryId], references: [id])
+  channelCategoryId Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   isDeleted Boolean  @default(false)
@@ -110,6 +143,8 @@ model EmailTemplate {
   name      String
   subject   String
   content   String
+  channelCategory ChannelCategory @relation(fields: [channelCategoryId], references: [id])
+  channelCategoryId Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   isDeleted Boolean  @default(false)

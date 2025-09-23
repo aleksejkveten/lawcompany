@@ -45,7 +45,6 @@ export default defineEventHandler(async (event) => {
           claimantCompanyId: body.claimantCompanyId || null,
           debtor: body.debtor,
           debtorCompanyId: body.debtorCompanyId || null,
-          registrationNumber: body.registrationNumber || '',
           caseNumber: body.caseNumber || null,
           incomingNumber: body.incomingNumber,
           receiptDate: body.receiptDate ? new Date(body.receiptDate) : null,

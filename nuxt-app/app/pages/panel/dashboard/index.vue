@@ -148,7 +148,7 @@
                       <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
                     </div>
                     <div>
-                      <p class="text-sm font-medium text-gray-900">{{ case_.claimant }} vs {{ case_.debtor }}</p>
+                      <p class="text-sm font-medium text-gray-900">{{ case_.claimant }} <span class="text--green-600">против</span> {{ case_.debtor }}</p>
                       <p class="text-xs text-gray-500 mt-1">{{ case_.caseNumber }} • {{ case_.courtName }}</p>
                     </div>
                   </div>

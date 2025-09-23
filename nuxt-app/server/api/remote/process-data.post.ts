@@ -155,9 +155,37 @@ async function processCourtCase(caseData: any) {
     return { isNew: false, updated: false }
   } else {
     // Create new case
-    await prisma.courtCase.create({
+    const newCase = await prisma.courtCase.create({
       data: casePayload
     })
+
+    // Link companies if they exist
+    const claimantCompany = await prisma.company.findFirst({
+      where: {
+        name: caseData.claimant,
+        isDeleted: false
+      }
+    })
+    if (claimantCompany) {
+      await prisma.courtCase.update({
+        where: { id: newCase.id },
+        data: { claimantCompanyId: claimantCompany.id }
+      })
+    }
+
+    const debtorCompany = await prisma.company.findFirst({
+      where: {
+        name: caseData.debtor,
+        isDeleted: false
+      }
+    })
+    if (debtorCompany) {
+      await prisma.courtCase.update({
+        where: { id: newCase.id },
+        data: { debtorCompanyId: debtorCompany.id }
+      })
+    }
+
     return { isNew: true, updated: false }
   }
 }

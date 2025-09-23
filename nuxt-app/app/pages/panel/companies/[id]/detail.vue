@@ -61,7 +61,22 @@
               <label class="block text-sm font-medium text-gray-500 mb-1">Псевдонимы</label>
               <p class="text-gray-900">{{ company.aliases }}</p>
             </div>
-            
+
+            <div v-if="company.address">
+              <label class="block text-sm font-medium text-gray-500 mb-1">Адрес</label>
+              <p class="text-gray-900">{{ company.address }}</p>
+            </div>
+
+            <div v-if="company.city">
+              <label class="block text-sm font-medium text-gray-500 mb-1">Город</label>
+              <p class="text-gray-900">{{ company.city }}</p>
+            </div>
+
+            <div v-if="company.site">
+              <label class="block text-sm font-medium text-gray-500 mb-1">Сайт</label>
+              <a :href="company.site" target="_blank" class="text-blue-600 hover:text-blue-800">{{ company.site }}</a>
+            </div>
+
             <div>
               <label class="block text-sm font-medium text-gray-500 mb-1">Статус отслеживания</label>
               <span :class="company.track ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'"
@@ -96,8 +111,13 @@
             <div class="space-y-4">
               <div v-for="contact in company.contactPersons" :key="contact.id" 
                    class="border border-gray-200 rounded-lg p-4">
-                <h4 class="font-medium text-gray-900 mb-3">{{ contact.name }}</h4>
-                
+                <div class="flex items-center justify-between mb-3">
+                  <h4 class="font-medium text-gray-900">{{ contact.name }}</h4>
+                  <span v-if="contact.source" class="inline-flex px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
+                    Источник: {{ contact.source }}
+                  </span>
+                </div>
+
                 <!-- Phones -->
                 <div v-if="contact.phones?.length" class="mb-3">
                   <label class="block text-sm font-medium text-gray-500 mb-2">Телефоны:</label>

@@ -94,7 +94,7 @@
         </thead>
         <tbody class="bg-white divide-y divide-gray-200">
           <tr v-for="company in companies" :key="company.id" class="hover:bg-gray-50 transition-colors duration-150">
-            <td class="px-6 py-4 whitespace-nowrap">
+            <td class="px-6 py-4 ">
               <div class="flex items-center">
                 <div class="flex-shrink-0 h-10 w-10">
                   <div class="h-10 w-10 rounded-full bg-gradient-to-r from-blue-400 to-blue-600 flex items-center justify-center">
@@ -107,7 +107,7 @@
                 </div>
               </div>
             </td>
-            <td class="px-6 py-4 whitespace-nowrap">
+            <td class="px-6 py-4 ">
               <div class="flex items-center">
                 <div v-if="company.unp" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                   {{ company.unp }}
@@ -115,17 +115,17 @@
                 <span v-else class="text-gray-400 text-sm">Не указан</span>
               </div>
             </td>
-            <td class="px-6 py-4 whitespace-nowrap">
+            <td class="px-6 py-4 ">
               <div class="flex items-center space-x-2">
                 <div class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                   <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
-                  {{ company.contactPersons?.length || 0 }} контактов
+                  {{ company.contactPersons?.length || 0 }} 
                 </div>
               </div>
             </td>
-            <td class="px-6 py-4 whitespace-nowrap">
+            <td class="px-6 py-4 ">
               <div class="flex items-center space-x-2">
                 <div class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
                   <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -135,10 +135,10 @@
                 </div>
               </div>
             </td>
-            <td class="px-6 py-4 whitespace-nowrap">
+            <td class="px-6 py-4 ">
               <div class="text-sm text-gray-900">{{ formatDate(company.createdAt) }}</div>
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-center">
+            <td class="px-6 py-4  text-center">
               <div class="flex items-center justify-center space-x-2">
                 <NuxtLink :to="`/panel/companies/${company.id}/detail`" 
                           class="group relative inline-flex items-center px-2.5 py-1.5 rounded-md text-sm font-medium bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition-colors duration-150" 

@@ -74,7 +74,46 @@
               placeholder="Альтернативные названия"
             >
           </div>
-          
+
+          <div>
+            <label for="address" class="block text-sm font-medium text-gray-700 mb-2">
+              Адрес
+            </label>
+            <input
+              v-model="form.address"
+              type="text"
+              id="address"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Полный адрес компании"
+            >
+          </div>
+
+          <div>
+            <label for="city" class="block text-sm font-medium text-gray-700 mb-2">
+              Город
+            </label>
+            <input
+              v-model="form.city"
+              type="text"
+              id="city"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Город"
+            >
+          </div>
+
+          <div>
+            <label for="site" class="block text-sm font-medium text-gray-700 mb-2">
+              Сайт
+            </label>
+            <input
+              v-model="form.site"
+              type="url"
+              id="site"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="https://example.com"
+            >
+          </div>
+
           <div>
             <label class="flex items-center">
               <input
@@ -135,17 +174,32 @@
               </button>
             </div>
             
-            <div class="mb-3">
-              <label class="block text-sm font-medium text-gray-700 mb-1">
-                Имя *
-              </label>
-              <input 
-                v-model="contact.name" 
-                type="text" 
-                required
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Введите имя"
-              >
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                  Имя *
+                </label>
+                <input
+                  v-model="contact.name"
+                  type="text"
+                  required
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Введите имя"
+                >
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                  Источник
+                </label>
+                <input
+                  v-model="contact.source"
+                  type="text"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Например: ЕГР"
+                  readonly
+                >
+              </div>
             </div>
             
             <!-- Телефоны -->
@@ -302,6 +356,9 @@ const form = ref({
   notes: '',
   track: false,
   aliases: '',
+  address: '',
+  city: '',
+  site: '',
   contactPersons: []
 })
 
@@ -327,11 +384,15 @@ const fetchCompany = async () => {
     form.value.notes = data.notes || ''
     form.value.track = data.track || false
     form.value.aliases = data.aliases || ''
+    form.value.address = data.address || ''
+    form.value.city = data.city || ''
+    form.value.site = data.site || ''
     
     // Fill contact persons
     form.value.contactPersons = (data.contactPersons || []).map(contact => ({
       id: contact.id,
       name: contact.name,
+      source: contact.source,
       phones: (contact.phones || []).map(phone => ({
         id: phone.id,
         number: phone.number
@@ -398,6 +459,9 @@ const submitForm = async () => {
       notes: form.value.notes.trim() || null,
       track: form.value.track,
       aliases: form.value.aliases.trim() || null,
+      address: form.value.address.trim() || null,
+      city: form.value.city.trim() || null,
+      site: form.value.site.trim() || null,
       contactPersons: form.value.contactPersons.map(contact => ({
         id: contact.id || undefined,
         name: contact.name.trim(),

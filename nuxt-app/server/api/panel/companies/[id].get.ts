@@ -1,6 +1,6 @@
 // API endpoint для получения компании по ID
-import prisma from "../../../utils/prisma";
-
+//import prisma from "../../../utils/prisma";
+import prisma from "../../../../lib/prisma";
 export default defineEventHandler(async (event) => {
   try {
     const companyId = getRouterParam(event, 'id')
