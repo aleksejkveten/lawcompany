@@ -61,7 +61,7 @@
       <div class="mt-4 p-4 bg-gray-50 rounded-lg">
         <div class="flex items-center space-x-4">
           <div class="flex items-center space-x-2">
-            <label class="text-sm font-medium text-gray-700">Дата добавления:</label>
+            <label class="text-sm font-medium text-gray-700">Добавлено в базу:</label>
             <input 
               v-model="filters.dateAddedFrom" 
               type="date" 
@@ -76,9 +76,9 @@
               @change="debouncedSearch"
             >
           </div>
-          
+
           <div class="flex items-center space-x-2">
-            <label class="text-sm font-medium text-gray-700">Дата создания:</label>
+            <label class="text-sm font-medium text-gray-700">Дата регистрации:</label>
             <input 
               v-model="filters.dateCreatedFrom" 
               type="date" 
