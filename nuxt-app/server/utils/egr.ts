@@ -75,6 +75,18 @@ interface EGRAddressInfo {
   vulitsa: string;
 }
 
+// Function to extract company name from quotes
+function extractCompanyNameFromQuotes(fullName: string): string {
+  // Try to extract name from quotes (e.g., "ВЕЛЕВ БЕЛ" from «ВЕЛЕВ БЕЛ»)
+  const quoteMatch = fullName.match(/[«"]([^«"]+)[»"]/);
+  if (quoteMatch) {
+    return quoteMatch[1].trim();
+  }
+
+  // If no quotes found, return the whole text
+  return fullName.trim();
+}
+
 // Function to search companies by name
 export async function searchCompaniesByName(query: string): Promise<EGRCompanyShortInfo[]> {
   if (!query || query.length < 4) {
@@ -85,13 +97,62 @@ export async function searchCompaniesByName(query: string): Promise<EGRCompanySh
     throw new Error('Use UNP search for numeric queries');
   }
 
-  const response = await fetch(`https://egr.gov.by/api/v2/egr/getShortInfoByRegName/${encodeURIComponent(query)}`);
+  // Extract the actual company name from quotes or legal form
+  const searchQuery = extractCompanyNameFromQuotes(query);
 
-  if (!response.ok) {
-    throw new Error('EGR API error');
+  if (!searchQuery || searchQuery.length < 2) {
+    throw new Error('Could not extract valid company name from query');
   }
 
-  return response.json();
+  try {
+    const response = await fetch(`https://egr.gov.by/api/v2/egr/getShortInfoByRegName/${encodeURIComponent(searchQuery)}`, {
+      headers: {
+        'Accept': 'application/json',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+      }
+    });
+
+    if (!response.ok) {
+      // If not found (404), return empty array instead of throwing
+      if (response.status === 404) {
+        return [];
+      }
+      throw new Error(`EGR API error: ${response.status} ${response.statusText}`);
+    }
+
+    const contentType = response.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      // If response is not JSON, it might be an HTML error page
+      const text = await response.text();
+      if (text.includes('<html') || text.includes('<!DOCTYPE')) {
+        // HTML response, treat as no results
+        return [];
+      }
+      throw new Error('EGR API returned non-JSON response');
+    }
+
+    const text = await response.text();
+    if (!text.trim()) {
+      // Return empty array if response is empty
+      return [];
+    }
+
+    try {
+      const data = JSON.parse(text);
+      // Ensure we return an array
+      return Array.isArray(data) ? data : [];
+    } catch (error) {
+      console.error('Failed to parse EGR API response:', error, 'Response text:', text.substring(0, 200));
+      throw new Error('Invalid JSON response from EGR API');
+    }
+  } catch (error) {
+    // If it's a network error or other fetch error, return empty array
+    if (error instanceof TypeError && error.message.includes('fetch')) {
+      console.warn('Network error when calling EGR API:', error);
+      return [];
+    }
+    throw error;
+  }
 }
 
 // Function to get address info by UNP
@@ -117,13 +178,55 @@ export async function getShortInfoByUnp(unp: string): Promise<EGRCompanyShortInf
     throw new Error('UNP must be exactly 9 digits');
   }
 
-  const response = await fetch(`https://egr.gov.by/api/v2/egr/getShortInfoByRegNum/${unp}`);
+  try {
+    const response = await fetch(`https://egr.gov.by/api/v2/egr/getShortInfoByRegNum/${unp}`, {
+      headers: {
+        'Accept': 'application/json',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+      }
+    });
 
-  if (!response.ok) {
-    throw new Error('EGR API error - short info not found');
+    if (!response.ok) {
+      // If not found (404), return empty array instead of throwing
+      if (response.status === 404) {
+        return [];
+      }
+      throw new Error(`EGR API error: ${response.status} ${response.statusText}`);
+    }
+
+    const contentType = response.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      // If response is not JSON, it might be an HTML error page
+      const text = await response.text();
+      if (text.includes('<html') || text.includes('<!DOCTYPE')) {
+        // HTML response, treat as no results
+        return [];
+      }
+      throw new Error('EGR API returned non-JSON response');
+    }
+
+    const text = await response.text();
+    if (!text.trim()) {
+      // Return empty array if response is empty
+      return [];
+    }
+
+    try {
+      const data = JSON.parse(text);
+      // Ensure we return an array
+      return Array.isArray(data) ? data : [];
+    } catch (error) {
+      console.error('Failed to parse EGR API response:', error, 'Response text:', text.substring(0, 200));
+      throw new Error('Invalid JSON response from EGR API');
+    }
+  } catch (error) {
+    // If it's a network error or other fetch error, return empty array
+    if (error instanceof TypeError && error.message.includes('fetch')) {
+      console.warn('Network error when calling EGR API:', error);
+      return [];
+    }
+    throw error;
   }
-
-  return response.json();
 }
 
 // Function to process and save company data

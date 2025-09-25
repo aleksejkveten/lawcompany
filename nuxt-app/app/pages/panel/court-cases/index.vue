@@ -241,7 +241,7 @@
                   <!-- Dropdown menu -->
                   <div v-if="dropdownOpen === courtCase.id"
                        @click.stop
-                       class="absolute right-0 mt-2 w-52 bg-white rounded-lg shadow-xl ring-1 ring-black ring-opacity-5 z-50 border border-gray-100">
+                       class="absolute right-0 mt-2 w-[14rem] bg-white rounded-lg shadow-xl ring-1 ring-black ring-opacity-5 z-50 border border-gray-100">
                     <div class="py-2">
                       <button @click="searchDefendantForCase(courtCase.id); dropdownOpen = null"
                               :disabled="courtCase.searchingDefendant"
@@ -573,8 +573,11 @@ const searchDefendantForCase = async (courtCaseId) => {
 
     if (response.success) {
       toast.success(response.message)
-      // Refresh the page data to show updated company associations
-      await fetchCourtCases()
+      // Update the local court case data instead of full refresh
+      if (courtCase && response.foundCompany) {
+        courtCase.debtorCompany = response.foundCompany
+        courtCase.debtorCompanyId = response.foundCompany.id
+      }
     } else {
       toast.error(response.message)
     }
@@ -611,8 +614,20 @@ const searchPartiesForCase = async (courtCaseId) => {
 
     if (response.success) {
       toast.success(response.message)
-      // Refresh the page data to show updated company associations
-      await fetchCourtCases()
+      // Update the local court case data instead of full refresh
+      if (courtCase && response.results) {
+        response.results.forEach(result => {
+          if (result.found && result.company) {
+            if (result.party === 'claimant') {
+              courtCase.claimantCompany = result.company
+              courtCase.claimantCompanyId = result.company.id
+            } else if (result.party === 'debtor') {
+              courtCase.debtorCompany = result.company
+              courtCase.debtorCompanyId = result.company.id
+            }
+          }
+        })
+      }
     } else {
       toast.error(response.message)
     }

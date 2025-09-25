@@ -11,6 +11,15 @@ export default defineNuxtConfig({
   runtimeConfig: {
     prismaUrl: process.env.PRISMA_URL,
     sessionPassword: process.env.NUXT_SESSION_PASSWORD,
+    redis: {
+      host: process.env.REDIS_HOST || 'localhost',
+      port: process.env.REDIS_PORT || '6379',
+      password: process.env.REDIS_PASSWORD,
+    },
+    yandexMail: {
+      login: process.env.YANDEX_MAIL_LOGIN,
+      password: process.env.YANDEX_MAIL_PASSWORD,
+    },
     public: {
       // Public variables that will be exposed to the client
     }

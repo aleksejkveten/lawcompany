@@ -65,6 +65,7 @@ export default defineEventHandler(async (event) => {
                   foundAny = true
                 } catch (addressError) {
                   console.error(`Error getting address for claimant in court case ${courtCaseId}:`, addressError)
+                  // Still process without address data
                   await processAndSaveCompany(companies[0], [], courtCase.id, false)
                   foundAny = true
                 }
@@ -85,6 +86,7 @@ export default defineEventHandler(async (event) => {
                   foundAny = true
                 } catch (addressError) {
                   console.error(`Error getting address for debtor in court case ${courtCaseId}:`, addressError)
+                  // Still process without address data
                   await processAndSaveCompany(companies[0], [], courtCase.id, true)
                   foundAny = true
                 }
