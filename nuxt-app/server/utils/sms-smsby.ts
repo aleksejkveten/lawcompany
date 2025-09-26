@@ -92,22 +92,23 @@ export async function sendQuickSMS(
   forwardingTime?: number,
   vibernameId?: number
 ): Promise<SMSByQuickResponse> {
-  const requestData: SMSByQuickRequest = {
+  const params = new URLSearchParams({
     token,
     message,
     phone,
-    alphaname_id: alphanameId,
-    forwarding_message: forwardingMessage,
-    forwarding_time: forwardingTime,
-    vibername_id: vibernameId
-  };
+    alphaname_id: alphanameId
+  });
 
-  const response = await fetch(`${SMS_BY_BASE_URL}/api/v1/sendQuickSMS`, {
+  const formData = new FormData();
+  if (forwardingMessage !== undefined) formData.append('forwarding_message', forwardingMessage.toString());
+  if (forwardingTime !== undefined) formData.append('forwarding_time', forwardingTime.toString());
+  if (vibernameId !== undefined) formData.append('vibername_id', vibernameId.toString());
+
+  const url = `${SMS_BY_BASE_URL}/api/v1/sendQuickSMS?${params}`;
+
+  const response = await fetch(url, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(requestData)
+    body: formData
   });
 
   if (!response.ok) {

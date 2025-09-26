@@ -76,9 +76,10 @@ export default defineEventHandler(async (event) => {
 
   } catch (error) {
     console.error('Error updating task:', error)
+    const err = error as { statusCode?: number; statusMessage?: string }
     throw createError({
-      statusCode: error.statusCode || 500,
-      statusMessage: error.statusMessage || 'Failed to update task'
+      statusCode: err.statusCode || 500,
+      statusMessage: err.statusMessage || 'Failed to update task'
     })
   }
 })

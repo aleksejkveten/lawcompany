@@ -20,6 +20,10 @@ export default defineNuxtConfig({
       login: process.env.YANDEX_MAIL_LOGIN,
       password: process.env.YANDEX_MAIL_PASSWORD,
     },
+    smsby: {
+      token: process.env.SMS_BY_API_TOKEN,
+      alphaname: process.env.SMS_BY_ALPHANAME
+    },
     public: {
       // Public variables that will be exposed to the client
     }
